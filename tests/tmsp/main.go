@@ -95,21 +95,31 @@ func testSequence() {
 	// Make a bunch of PrivAccounts
 	privAccounts := tests.RandAccounts(1000, 1000000, 0)
 	privAccountSequences := make(map[string]int)
-
 	// Send coins to each account
+
 	for i := 0; i < len(privAccounts); i++ {
 		privAccount := privAccounts[i]
+
+		//Generate txInputs with or without public key
+		tempTxInputs := types.TxInput{
+			Address:  test1Acc.PubKey.Address(),
+			PubKey:   test1Acc.PubKey, // TODO is this needed?
+			Coins:    types.Coins{{"", 1000002}},
+			Sequence: sequence,
+		}
+
+		if sequence > 1 {
+			tempTxInputs = types.TxInput{
+				Address:  test1Acc.PubKey.Address(),
+				Coins:    types.Coins{{"", 1000002}},
+				Sequence: sequence,
+			}
+		}
+
 		tx := &types.SendTx{
-			Fee: 2,
-			Gas: 2,
-			Inputs: []types.TxInput{
-				types.TxInput{
-					Address:  test1Acc.PubKey.Address(),
-					PubKey:   test1Acc.PubKey, // TODO is this needed?
-					Coins:    types.Coins{{"", 1000002}},
-					Sequence: sequence,
-				},
-			},
+			Fee:    2,
+			Gas:    2,
+			Inputs: []types.TxInput{tempTxInputs},
 			Outputs: []types.TxOutput{
 				types.TxOutput{
 					Address: privAccount.Account.PubKey.Address(),
@@ -132,14 +142,14 @@ func testSequence() {
 			Exit("AppendTx error: " + res.Error())
 		}
 
-		res = bcApp.Commit()
-		if res.IsErr() {
-			Exit(Fmt("Failed Commit: %v", res.Error()))
-		}
-
 	}
 
 	fmt.Println("-------------------- RANDOM SENDS --------------------")
+
+	res = bcApp.Commit()
+	if res.IsErr() {
+		Exit(Fmt("Failed Commit: %v", res.Error()))
+	}
 
 	// Now send coins between these accounts
 	for i := 0; i < 10000; i++ {
