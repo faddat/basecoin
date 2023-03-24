@@ -42,6 +42,8 @@ import (
 	"unsafe"
 )
 
+var context *C.secp256k1_context
+
 func init() {
 	// around 20 ms on a modern CPU.
 	context = C.secp256k1_context_create_sign_verify()
@@ -50,8 +52,6 @@ func init() {
 }
 
 var (
-	context *C.secp256k1_context
-
 	ErrInvalidMsgLen       = errors.New("invalid message length, need 32 bytes")
 	ErrInvalidSignatureLen = errors.New("invalid signature length")
 	ErrInvalidRecoveryID   = errors.New("invalid signature recovery id")
@@ -67,7 +67,7 @@ var (
 // The caller is responsible for ensuring that msg cannot be chosen
 // directly by an attacker. It is usually preferable to use a cryptographic
 // hash function on any input before handing it to this function.
-func Sign(msg, seckey []byte) ([]byte, error) {
+func Sign(msg []byte, seckey []byte) ([]byte, error) {
 	if len(msg) != 32 {
 		return nil, ErrInvalidMsgLen
 	}
@@ -102,7 +102,7 @@ func Sign(msg, seckey []byte) ([]byte, error) {
 // msg must be the 32-byte hash of the message to be signed.
 // sig must be a 65-byte compact ECDSA signature containing the
 // recovery id as the last element.
-func RecoverPubkey(msg, sig []byte) ([]byte, error) {
+func RecoverPubkey(msg []byte, sig []byte) ([]byte, error) {
 	if len(msg) != 32 {
 		return nil, ErrInvalidMsgLen
 	}

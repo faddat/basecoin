@@ -100,7 +100,7 @@ func (m *LegacyAminoPubKey) VerifyMultisignature(getSignBytes multisigtypes.GetS
 // VerifySignature implements cryptotypes.PubKey VerifySignature method,
 // it panics because it can't handle MultiSignatureData
 // cf. https://github.com/cosmos/cosmos-sdk/issues/7109#issuecomment-686329936
-func (m *LegacyAminoPubKey) VerifySignature(_, _ []byte) bool {
+func (m *LegacyAminoPubKey) VerifySignature(msg []byte, sig []byte) bool {
 	panic("not implemented")
 }
 
@@ -144,7 +144,7 @@ func (m *LegacyAminoPubKey) GetThreshold() uint {
 }
 
 // Type returns multisig type
-func (*LegacyAminoPubKey) Type() string {
+func (m *LegacyAminoPubKey) Type() string {
 	return "PubKeyMultisigThreshold"
 }
 
@@ -164,11 +164,11 @@ func packPubKeys(pubKeys []cryptotypes.PubKey) ([]*types.Any, error) {
 	anyPubKeys := make([]*types.Any, len(pubKeys))
 
 	for i := 0; i < len(pubKeys); i++ {
-		anyPubKey, err := types.NewAnyWithValue(pubKeys[i])
+		any, err := types.NewAnyWithValue(pubKeys[i])
 		if err != nil {
 			return nil, err
 		}
-		anyPubKeys[i] = anyPubKey
+		anyPubKeys[i] = any
 	}
 	return anyPubKeys, nil
 }

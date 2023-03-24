@@ -463,8 +463,11 @@ func (ks keystore) Rename(oldName, newName string) error {
 		return err
 	}
 
-	err = ks.ImportPrivKey(newName, armor, passPhrase)
-	return err
+	if err := ks.ImportPrivKey(newName, armor, passPhrase); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // Delete deletes a key in the keyring. `uid` represents the key name, without
@@ -605,7 +608,7 @@ func SignWithLedger(k *Record, msg []byte, signMode signing.SignMode) (sig []byt
 
 	priv, err := ledger.NewPrivKeySecp256k1Unsafe(*path)
 	if err != nil {
-		return nil, nil, err
+		return
 	}
 
 	switch signMode {
@@ -812,9 +815,11 @@ func (ks keystore) writeRecord(k *Record) error {
 		Data: []byte(key),
 	}
 
-	err = ks.SetItem(item)
+	if err := ks.SetItem(item); err != nil {
+		return err
+	}
 
-	return err
+	return nil
 }
 
 // existsInDb returns (true, nil) if either addr or name exist is in keystore DB.
