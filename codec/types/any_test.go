@@ -15,15 +15,19 @@ type errOnMarshal struct {
 	testdata.Dog
 }
 
-var _ proto.Message = (*errOnMarshal)(nil)
+var (
+	_ proto.Message = (*errOnMarshal)(nil)
 
-var errAlways = fmt.Errorf("always erroring")
+	errAlways = fmt.Errorf("always erroring")
+
+	eom = &errOnMarshal{}
+
+	sink any
+)
 
 func (eom *errOnMarshal) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) { //nolint:revive
 	return nil, errAlways
 }
-
-var eom = &errOnMarshal{}
 
 // Ensure that returning an error doesn't suddenly allocate and waste bytes.
 // See https://github.com/cosmos/cosmos-sdk/issues/8537
@@ -52,8 +56,6 @@ func TestNewAnyWithCustomTypeURLWithErrorNoAllocation(t *testing.T) {
 		t.Fatalf("Unexpectedly got a non-nil Any value: %v", anyCustomURL)
 	}
 }
-
-var sink any
 
 func BenchmarkNewAnyWithCustomTypeURLWithErrorReturned(b *testing.B) {
 	b.ResetTimer()
