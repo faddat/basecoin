@@ -119,6 +119,63 @@ type (
 	CLILogger struct {
 		cmd *cobra.Command
 	}
+
+	// Network defines a local in-process testing network using SimApp. It can be
+	// configured to start any number of validators, each with its own RPC and API
+	// clients. Typically, this test network would be used in client and integration
+	// testing where user input is expected.
+	//
+	// Note, due to CometBFT constraints in regards to RPC functionality, there
+	// may only be one test network running at a time. Thus, any caller must be
+	// sure to Cleanup after testing is finished in order to allow other tests
+	// to create networks. In addition, only the first validator will have a valid
+	// RPC and API server/client.
+	Network struct {
+		Logger     Logger
+		BaseDir    string
+		Validators []*Validator
+
+		Config Config
+	}
+
+	// Validator defines an in-process CometBFT validator node. Through this object,
+	// a client can make RPC and API calls and interact with any client command
+	// or handler.
+	Validator struct {
+		AppConfig  *srvconfig.Config
+		ClientCtx  client.Context
+		Ctx        *server.Context
+		Dir        string
+		NodeID     string
+		PubKey     cryptotypes.PubKey
+		Moniker    string
+		APIAddress string
+		RPCAddress string
+		P2PAddress string
+		Address    sdk.AccAddress
+		ValAddress sdk.ValAddress
+		RPCClient  cmtclient.Client
+
+		tmNode   *node.Node
+		api      *api.Server
+		grpc     *grpc.Server
+		grpcWeb  *http.Server
+		errGroup *errgroup.Group
+		cancelFn context.CancelFunc
+	}
+
+	// ValidatorI expose a validator's context and configuration
+	ValidatorI interface {
+		GetCtx() *server.Context
+		GetAppConfig() *srvconfig.Config
+	}
+
+	// Logger is a network logger interface that exposes testnet-level Log() methods for an in-process testing network
+	// This is not to be confused with logging that may happen at an individual node or validator level
+	Logger interface {
+		Log(args ...any)
+		Logf(format string, args ...any)
+	}
 )
 
 func init() {
@@ -236,65 +293,6 @@ func DefaultConfigWithAppConfig(appConfig depinject.Config) (Config, error) {
 
 	return cfg, nil
 }
-
-type (
-	// Network defines a local in-process testing network using SimApp. It can be
-	// configured to start any number of validators, each with its own RPC and API
-	// clients. Typically, this test network would be used in client and integration
-	// testing where user input is expected.
-	//
-	// Note, due to CometBFT constraints in regards to RPC functionality, there
-	// may only be one test network running at a time. Thus, any caller must be
-	// sure to Cleanup after testing is finished in order to allow other tests
-	// to create networks. In addition, only the first validator will have a valid
-	// RPC and API server/client.
-	Network struct {
-		Logger     Logger
-		BaseDir    string
-		Validators []*Validator
-
-		Config Config
-	}
-
-	// Validator defines an in-process CometBFT validator node. Through this object,
-	// a client can make RPC and API calls and interact with any client command
-	// or handler.
-	Validator struct {
-		AppConfig  *srvconfig.Config
-		ClientCtx  client.Context
-		Ctx        *server.Context
-		Dir        string
-		NodeID     string
-		PubKey     cryptotypes.PubKey
-		Moniker    string
-		APIAddress string
-		RPCAddress string
-		P2PAddress string
-		Address    sdk.AccAddress
-		ValAddress sdk.ValAddress
-		RPCClient  cmtclient.Client
-
-		tmNode   *node.Node
-		api      *api.Server
-		grpc     *grpc.Server
-		grpcWeb  *http.Server
-		errGroup *errgroup.Group
-		cancelFn context.CancelFunc
-	}
-
-	// ValidatorI expose a validator's context and configuration
-	ValidatorI interface {
-		GetCtx() *server.Context
-		GetAppConfig() *srvconfig.Config
-	}
-
-	// Logger is a network logger interface that exposes testnet-level Log() methods for an in-process testing network
-	// This is not to be confused with logging that may happen at an individual node or validator level
-	Logger interface {
-		Log(args ...any)
-		Logf(format string, args ...any)
-	}
-)
 
 func (v Validator) GetCtx() *server.Context {
 	return v.Ctx
