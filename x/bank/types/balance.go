@@ -12,6 +12,19 @@ import (
 
 var _ exported.GenesisBalance = (*Balance)(nil)
 
+type (
+
+	// GenesisBalancesIterator implements genesis account iteration.
+	GenesisBalancesIterator struct{}
+
+	// balanceByAddress implements sort.Interface for []Balance based on the
+	// address field.
+	balanceByAddress struct {
+		addresses []sdk.AccAddress
+		balances  []Balance
+	}
+)
+
 // GetAddress returns the account address of the Balance object.
 func (b Balance) GetAddress() sdk.AccAddress {
 	return sdk.MustAccAddressFromBech32(b.Address)
@@ -31,11 +44,6 @@ func (b Balance) Validate() error {
 	err := b.Coins.Validate()
 
 	return err
-}
-
-type balanceByAddress struct {
-	addresses []sdk.AccAddress
-	balances  []Balance
 }
 
 func (b balanceByAddress) Len() int { return len(b.addresses) }
@@ -71,9 +79,6 @@ func SanitizeGenesisBalances(balances []Balance) []Balance {
 
 	return balances
 }
-
-// GenesisBalancesIterator implements genesis account iteration.
-type GenesisBalancesIterator struct{}
 
 // IterateGenesisBalances iterates over all the genesis balances found in
 // appGenesis and invokes a callback on each genesis account. If any call

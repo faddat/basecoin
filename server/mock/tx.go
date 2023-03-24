@@ -15,33 +15,35 @@ import (
 )
 
 // An sdk.Tx which is its own sdk.Msg.
-type KVStoreTx struct {
-	key     []byte
-	value   []byte
-	bytes   []byte
-	address sdk.AccAddress
-}
+type (
+	KVStoreTx struct {
+		key     []byte
+		value   []byte
+		bytes   []byte
+		address sdk.AccAddress
+	}
 
-// testPubKey is a dummy implementation of PubKey used for testing.
-type testPubKey struct {
-	address sdk.AccAddress
-}
+	// testPubKey is a dummy implementation of PubKey used for testing.
+	testPubKey struct {
+		address sdk.AccAddress
+	}
+)
 
-func (t testPubKey) Reset() { panic("not implemented") }
+func (testPubKey) Reset() { panic("not implemented") }
 
-func (t testPubKey) String() string { panic("not implemented") }
+func (testPubKey) String() string { panic("not implemented") }
 
-func (t testPubKey) ProtoMessage() { panic("not implemented") }
+func (testPubKey) ProtoMessage() { panic("not implemented") }
 
 func (t testPubKey) Address() cryptotypes.Address { return t.address.Bytes() }
 
-func (t testPubKey) Bytes() []byte { panic("not implemented") }
+func (testPubKey) Bytes() []byte { panic("not implemented") }
 
-func (t testPubKey) VerifySignature(_, _ []byte) bool { panic("not implemented") }
+func (testPubKey) VerifySignature(_, _ []byte) bool { panic("not implemented") }
 
-func (t testPubKey) Equals(_ cryptotypes.PubKey) bool { panic("not implemented") }
+func (testPubKey) Equals(_ cryptotypes.PubKey) bool { panic("not implemented") }
 
-func (t testPubKey) Type() string { panic("not implemented") }
+func (testPubKey) Type() string { panic("not implemented") }
 
 func (msg *KVStoreTx) GetSignaturesV2() (res []txsigning.SignatureV2, err error) {
 	res = append(res, txsigning.SignatureV2{

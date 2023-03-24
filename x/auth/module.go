@@ -39,10 +39,48 @@ var (
 	_ module.AppModule           = AppModule{}
 	_ module.AppModuleBasic      = AppModuleBasic{}
 	_ module.AppModuleSimulation = AppModule{}
+	_ appmodule.AppModule        = AppModule{}
 )
 
-// AppModuleBasic defines the basic application module used by the auth module.
-type AppModuleBasic struct{}
+type (
+
+	// AppModule implements an application module for the auth module.
+	AppModule struct {
+		AppModuleBasic
+
+		accountKeeper     keeper.AccountKeeper
+		randGenAccountsFn types.RandomGenesisAccountsFn
+
+		// legacySubspace is used solely for migration of x/params managed parameters
+		legacySubspace exported.Subspace
+	}
+
+	// AppModuleBasic defines the basic application module used by the auth module.
+	AppModuleBasic struct{}
+
+	//nolint:revive
+	AuthInputs struct {
+		depinject.In
+
+		Config *modulev1.Module
+		Key    *store.KVStoreKey
+		Cdc    codec.Codec
+
+		RandomGenesisAccountsFn types.RandomGenesisAccountsFn `optional:"true"`
+		AccountI                func() sdk.AccountI           `optional:"true"`
+
+		// LegacySubspace is used solely for migration of x/params managed parameters
+		LegacySubspace exported.Subspace `optional:"true"`
+	}
+
+	//nolint:revive
+	AuthOutputs struct {
+		depinject.Out
+
+		AccountKeeper keeper.AccountKeeper
+		Module        appmodule.AppModule
+	}
+)
 
 // Name returns the auth module's name.
 func (AppModuleBasic) Name() string {
@@ -92,24 +130,11 @@ func (AppModuleBasic) RegisterInterfaces(registry codectypes.InterfaceRegistry) 
 	types.RegisterInterfaces(registry)
 }
 
-// AppModule implements an application module for the auth module.
-type AppModule struct {
-	AppModuleBasic
-
-	accountKeeper     keeper.AccountKeeper
-	randGenAccountsFn types.RandomGenesisAccountsFn
-
-	// legacySubspace is used solely for migration of x/params managed parameters
-	legacySubspace exported.Subspace
-}
-
-var _ appmodule.AppModule = AppModule{}
-
 // IsOnePerModuleType implements the depinject.OnePerModuleType interface.
-func (am AppModule) IsOnePerModuleType() {}
+func (AppModule) IsOnePerModuleType() {}
 
 // IsAppModule implements the appmodule.AppModule interface.
-func (am AppModule) IsAppModule() {}
+func (AppModule) IsAppModule() {}
 
 // NewAppModule creates a new AppModule object
 func NewAppModule(accountKeeper keeper.AccountKeeper, randGenAccountsFn types.RandomGenesisAccountsFn, ss exported.Subspace) AppModule {
@@ -207,29 +232,6 @@ func init() {
 // modules that want to do address string <> bytes conversion.
 func ProvideAddressCodec(config *modulev1.Module) address.Codec {
 	return keeper.NewBech32Codec(config.Bech32Prefix)
-}
-
-//nolint:revive
-type AuthInputs struct {
-	depinject.In
-
-	Config *modulev1.Module
-	Key    *store.KVStoreKey
-	Cdc    codec.Codec
-
-	RandomGenesisAccountsFn types.RandomGenesisAccountsFn `optional:"true"`
-	AccountI                func() sdk.AccountI           `optional:"true"`
-
-	// LegacySubspace is used solely for migration of x/params managed parameters
-	LegacySubspace exported.Subspace `optional:"true"`
-}
-
-//nolint:revive
-type AuthOutputs struct {
-	depinject.Out
-
-	AccountKeeper keeper.AccountKeeper
-	Module        appmodule.AppModule
 }
 
 func ProvideModule(in AuthInputs) AuthOutputs {

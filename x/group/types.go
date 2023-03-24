@@ -48,6 +48,9 @@ type (
 		ValidateBasic() error
 		Validate(g GroupInfo, config Config) error
 	}
+
+	// operation is a function that performs an operation on two Decimals
+	operation func(x, y math.Dec) (math.Dec, error)
 )
 
 var (
@@ -60,6 +63,9 @@ var (
 
 	// Implements DecisionPolicy Interface
 	_ DecisionPolicy = &PercentageDecisionPolicy{}
+
+	// Implements DecisionPolicy Interface
+	_ orm.Validateable = GroupPolicyInfo{}
 )
 
 // NewThresholdDecisionPolicy creates a threshold DecisionPolicy
@@ -249,8 +255,6 @@ func (p PercentageDecisionPolicy) Allow(tally TallyResult, totalPower string) (D
 	}
 	return DecisionPolicyResult{Allow: false, Final: false}, nil
 }
-
-var _ orm.Validateable = GroupPolicyInfo{}
 
 // NewGroupPolicyInfo creates a new GroupPolicyInfo instance
 func NewGroupPolicyInfo(address sdk.AccAddress, group uint64, admin sdk.AccAddress, metadata string,
@@ -470,8 +474,6 @@ func unpackGroupPolicies(unpacker codectypes.AnyUnpacker, accs []*GroupPolicyInf
 
 	return nil
 }
-
-type operation func(x, y math.Dec) (math.Dec, error)
 
 func (t *TallyResult) operation(vote Vote, weight string, op operation) error {
 	weightDec, err := math.NewPositiveDecFromString(weight)
