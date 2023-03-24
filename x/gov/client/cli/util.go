@@ -15,12 +15,25 @@ import (
 	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 )
 
-type legacyProposal struct {
-	Title       string
-	Description string
-	Type        string
-	Deposit     string
-}
+type (
+	legacyProposal struct {
+		Title       string
+		Description string
+		Type        string
+		Deposit     string
+	}
+
+	// proposal defines the new Msg-based proposal.
+	proposal struct {
+		// Msgs defines an array of sdk.Msgs proto-JSON-encoded as Anys.
+		Messages  []json.RawMessage `json:"messages,omitempty"`
+		Metadata  string            `json:"metadata"`
+		Deposit   string            `json:"deposit"`
+		Title     string            `json:"title"`
+		Summary   string            `json:"summary"`
+		Expedited bool              `json:"expedited"`
+	}
+)
 
 // validate the legacyProposal
 func (p legacyProposal) validate() error {
@@ -77,17 +90,6 @@ func parseSubmitLegacyProposal(fs *pflag.FlagSet) (*legacyProposal, error) {
 	}
 
 	return proposal, nil
-}
-
-// proposal defines the new Msg-based proposal.
-type proposal struct {
-	// Msgs defines an array of sdk.Msgs proto-JSON-encoded as Anys.
-	Messages  []json.RawMessage `json:"messages,omitempty"`
-	Metadata  string            `json:"metadata"`
-	Deposit   string            `json:"deposit"`
-	Title     string            `json:"title"`
-	Summary   string            `json:"summary"`
-	Expedited bool              `json:"expedited"`
 }
 
 // parseSubmitProposal reads and parses the proposal.

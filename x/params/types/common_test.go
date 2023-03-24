@@ -77,20 +77,22 @@ func validateMaxRedelegationEntries(i any) error {
 	return nil
 }
 
+// Create a new parameter set
 func (p *params) ParamSetPairs() types.ParamSetPairs {
 	return types.ParamSetPairs{
-		{keyUnbondingTime, &p.UnbondingTime, validateUnbondingTime},
-		{keyMaxValidators, &p.MaxValidators, validateMaxValidators},
-		{keyBondDenom, &p.BondDenom, validateBondDenom},
+		{Key: keyUnbondingTime, Value: &p.UnbondingTime, ValidatorFn: validateUnbondingTime},
+		{Key: keyMaxValidators, Value: &p.MaxValidators, ValidatorFn: validateMaxValidators},
+		{Key: keyBondDenom, Value: &p.BondDenom, ValidatorFn: validateBondDenom},
 	}
 }
 
+// Create a new parameter set with added parameters
 func (p *paramsV2) ParamSetPairs() types.ParamSetPairs {
 	return types.ParamSetPairs{
-		{keyUnbondingTime, &p.UnbondingTime, validateUnbondingTime},
-		{keyMaxValidators, &p.MaxValidators, validateMaxValidators},
-		{keyBondDenom, &p.BondDenom, validateBondDenom},
-		{keyMaxRedelegationEntries, &p.MaxRedelegationEntries, validateMaxRedelegationEntries},
+		{Key: keyUnbondingTime, Value: &p.UnbondingTime, ValidatorFn: validateUnbondingTime},
+		{Key: keyMaxValidators, Value: &p.MaxValidators, ValidatorFn: validateMaxValidators},
+		{Key: keyBondDenom, Value: &p.BondDenom, ValidatorFn: validateBondDenom},
+		{Key: keyMaxRedelegationEntries, Value: &p.MaxRedelegationEntries, ValidatorFn: validateMaxRedelegationEntries},
 	}
 }
 

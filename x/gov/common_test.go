@@ -37,6 +37,26 @@ var (
 	TestProposal        = v1beta1.NewTextProposal("Test", "description")
 	TestDescription     = stakingtypes.NewDescription("T", "E", "S", "T", "Z")
 	TestCommissionRates = stakingtypes.NewCommissionRates(math.LegacyZeroDec(), math.LegacyZeroDec(), math.LegacyZeroDec())
+
+	pubkeys = []cryptotypes.PubKey{
+		ed25519.GenPrivKey().PubKey(),
+		ed25519.GenPrivKey().PubKey(),
+		ed25519.GenPrivKey().PubKey(),
+	}
+)
+
+type (
+	suite struct {
+		AccountKeeper      authkeeper.AccountKeeper
+		BankKeeper         bankkeeper.Keeper
+		GovKeeper          *keeper.Keeper
+		StakingKeeper      *stakingkeeper.Keeper
+		DistributionKeeper distrkeeper.Keeper
+		App                *runtime.App
+	}
+
+	// implement `Interface` in sort package.
+	sortByteArrays [][]byte
 )
 
 // mkTestLegacyContent creates a MsgExecLegacyContent for testing purposes.
@@ -62,9 +82,6 @@ func SortAddresses(addrs []sdk.AccAddress) {
 		addrs[i] = byteAddr
 	}
 }
-
-// implement `Interface` in sort package.
-type sortByteArrays [][]byte
 
 func (b sortByteArrays) Len() int {
 	return len(b)
@@ -92,21 +109,6 @@ func SortByteArrays(src [][]byte) [][]byte {
 	sorted := sortByteArrays(src)
 	sort.Sort(sorted)
 	return sorted
-}
-
-var pubkeys = []cryptotypes.PubKey{
-	ed25519.GenPrivKey().PubKey(),
-	ed25519.GenPrivKey().PubKey(),
-	ed25519.GenPrivKey().PubKey(),
-}
-
-type suite struct {
-	AccountKeeper      authkeeper.AccountKeeper
-	BankKeeper         bankkeeper.Keeper
-	GovKeeper          *keeper.Keeper
-	StakingKeeper      *stakingkeeper.Keeper
-	DistributionKeeper distrkeeper.Keeper
-	App                *runtime.App
 }
 
 func createTestSuite(t *testing.T) suite {
