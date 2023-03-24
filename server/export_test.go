@@ -27,19 +27,40 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// ExportSystem wraps a (*cmdtest).System
-// and sets up appropriate client and server contexts,
-// to simplify testing the export CLI.
-type ExportSystem struct {
-	sys *cmdtest.System
+type (
+	// ExportSystem wraps a (*cmdtest).System
+	// and sets up appropriate client and server contexts,
+	// to simplify testing the export CLI.
+	ExportSystem struct {
+		sys *cmdtest.System
 
-	Ctx context.Context
+		Ctx context.Context
 
-	Sctx *server.Context
-	Cctx client.Context
+		Sctx *server.Context
+		Cctx client.Context
 
-	HomeDir string
-}
+		HomeDir string
+	}
+
+	// mockExporter provides an Export method matching server/types.AppExporter,
+	// and it tracks relevant arguments when that method is called.
+	mockExporter struct {
+		// The values to return from Export().
+		ExportApp types.ExportedApp
+		Err       error
+
+		// Whether Export was called at all.
+		WasCalled bool
+
+		// Called tracks the interesting arguments passed to Export().
+		Called struct {
+			Height           int64
+			ForZeroHeight    bool
+			JailAllowedAddrs []string
+			ModulesToExport  []string
+		}
+	}
+)
 
 // newExportSystem returns a cmdtest.System with export as a child command,
 // and it returns a context.Background with an associated *server.Context value.
@@ -104,25 +125,6 @@ func isZeroExportedApp(a types.ExportedApp) bool {
 		len(a.Validators) == 0 &&
 		a.Height == 0 &&
 		a.ConsensusParams == nil
-}
-
-// mockExporter provides an Export method matching server/types.AppExporter,
-// and it tracks relevant arguments when that method is called.
-type mockExporter struct {
-	// The values to return from Export().
-	ExportApp types.ExportedApp
-	Err       error
-
-	// Whether Export was called at all.
-	WasCalled bool
-
-	// Called tracks the interesting arguments passed to Export().
-	Called struct {
-		Height           int64
-		ForZeroHeight    bool
-		JailAllowedAddrs []string
-		ModulesToExport  []string
-	}
 }
 
 // SetDefaultExportApp sets a valid ExportedApp to be returned
