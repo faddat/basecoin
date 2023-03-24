@@ -65,6 +65,60 @@ import (
 var (
 	lock     = new(sync.Mutex)
 	portPool = make(chan string, 200)
+
+	_ Logger     = (*testing.T)(nil)
+	_ Logger     = (*CLILogger)(nil)
+	_ ValidatorI = Validator{}
+)
+
+type (
+	// AppConstructor defines a function which accepts a network configuration and
+	// creates an ABCI Application to provide to CometBFT.
+
+	AppConstructor     = func(val ValidatorI) servertypes.Application
+	TestFixtureFactory = func() TestFixture
+
+	TestFixture struct {
+		AppConstructor AppConstructor
+		GenesisState   map[string]json.RawMessage
+		EncodingConfig moduletestutil.TestEncodingConfig
+	}
+
+	// Config defines the necessary configuration used to bootstrap and start an
+	// in-process local testing network.
+	Config struct {
+		Codec             codec.Codec
+		LegacyAmino       *codec.LegacyAmino // TODO: Remove!
+		InterfaceRegistry codectypes.InterfaceRegistry
+
+		TxConfig         client.TxConfig
+		AccountRetriever client.AccountRetriever
+		AppConstructor   AppConstructor             // the ABCI application constructor
+		GenesisState     map[string]json.RawMessage // custom genesis state to provide
+		TimeoutCommit    time.Duration              // the consensus commitment timeout
+		ChainID          string                     // the network chain-id
+		NumValidators    int                        // the total number of validators to create and bond
+		Mnemonics        []string                   // custom user-provided validator operator mnemonics
+		BondDenom        string                     // the staking bond denomination
+		MinGasPrices     string                     // the minimum gas prices each validator will accept
+		AccountTokens    sdkmath.Int                // the amount of unique validator tokens (e.g. 1000node0)
+		StakingTokens    sdkmath.Int                // the amount of tokens each validator has available to stake
+		BondedTokens     sdkmath.Int                // the amount of tokens each validator stakes
+		PruningStrategy  string                     // the pruning strategy each validator will have
+		EnableLogging    bool                       // enable logging to STDOUT
+		CleanupDir       bool                       // remove base temporary directory during cleanup
+		SigningAlgo      string                     // signing algorithm for keys
+		KeyringOptions   []keyring.Option           // keyring configuration options
+		RPCAddress       string                     // RPC listen address (including port)
+		APIAddress       string                     // REST API listen address (including port)
+		GRPCAddress      string                     // GRPC server listen address (including port)
+		PrintMnemonic    bool                       // print the mnemonic of first validator as log output for testing
+	}
+
+	// CLILogger wraps a cobra.Command and provides command logging methods.
+	CLILogger struct {
+		cmd *cobra.Command
+	}
 )
 
 func init() {
@@ -85,50 +139,6 @@ func init() {
 			panic(err)
 		}
 	}
-}
-
-// AppConstructor defines a function which accepts a network configuration and
-// creates an ABCI Application to provide to CometBFT.
-type (
-	AppConstructor     = func(val ValidatorI) servertypes.Application
-	TestFixtureFactory = func() TestFixture
-)
-
-type TestFixture struct {
-	AppConstructor AppConstructor
-	GenesisState   map[string]json.RawMessage
-	EncodingConfig moduletestutil.TestEncodingConfig
-}
-
-// Config defines the necessary configuration used to bootstrap and start an
-// in-process local testing network.
-type Config struct {
-	Codec             codec.Codec
-	LegacyAmino       *codec.LegacyAmino // TODO: Remove!
-	InterfaceRegistry codectypes.InterfaceRegistry
-
-	TxConfig         client.TxConfig
-	AccountRetriever client.AccountRetriever
-	AppConstructor   AppConstructor             // the ABCI application constructor
-	GenesisState     map[string]json.RawMessage // custom genesis state to provide
-	TimeoutCommit    time.Duration              // the consensus commitment timeout
-	ChainID          string                     // the network chain-id
-	NumValidators    int                        // the total number of validators to create and bond
-	Mnemonics        []string                   // custom user-provided validator operator mnemonics
-	BondDenom        string                     // the staking bond denomination
-	MinGasPrices     string                     // the minimum gas prices each validator will accept
-	AccountTokens    sdkmath.Int                // the amount of unique validator tokens (e.g. 1000node0)
-	StakingTokens    sdkmath.Int                // the amount of tokens each validator has available to stake
-	BondedTokens     sdkmath.Int                // the amount of tokens each validator stakes
-	PruningStrategy  string                     // the pruning strategy each validator will have
-	EnableLogging    bool                       // enable logging to STDOUT
-	CleanupDir       bool                       // remove base temporary directory during cleanup
-	SigningAlgo      string                     // signing algorithm for keys
-	KeyringOptions   []keyring.Option           // keyring configuration options
-	RPCAddress       string                     // RPC listen address (including port)
-	APIAddress       string                     // REST API listen address (including port)
-	GRPCAddress      string                     // GRPC server listen address (including port)
-	PrintMnemonic    bool                       // print the mnemonic of first validator as log output for testing
 }
 
 // DefaultConfig returns a sane default configuration suitable for nearly all
@@ -286,23 +296,12 @@ type (
 	}
 )
 
-var (
-	_ Logger     = (*testing.T)(nil)
-	_ Logger     = (*CLILogger)(nil)
-	_ ValidatorI = Validator{}
-)
-
 func (v Validator) GetCtx() *server.Context {
 	return v.Ctx
 }
 
 func (v Validator) GetAppConfig() *srvconfig.Config {
 	return v.AppConfig
-}
-
-// CLILogger wraps a cobra.Command and provides command logging methods.
-type CLILogger struct {
-	cmd *cobra.Command
 }
 
 // Log logs given args.

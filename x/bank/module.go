@@ -39,12 +39,48 @@ var (
 	_ module.AppModule           = AppModule{}
 	_ module.AppModuleBasic      = AppModuleBasic{}
 	_ module.AppModuleSimulation = AppModule{}
+	_ appmodule.AppModule        = AppModule{}
 )
 
-// AppModuleBasic defines the basic application module used by the bank module.
-type AppModuleBasic struct {
-	cdc codec.Codec
-}
+type (
+	// AppModuleBasic defines the basic application module used by the bank module.
+	AppModuleBasic struct {
+		cdc codec.Codec
+	}
+
+	// AppModule implements an application module for the bank module.
+	AppModule struct {
+		AppModuleBasic
+
+		keeper        keeper.Keeper
+		accountKeeper types.AccountKeeper
+
+		// legacySubspace is used solely for migration of x/params managed parameters
+		legacySubspace exported.Subspace
+	}
+
+	//nolint:revive
+	BankInputs struct {
+		depinject.In
+
+		Config *modulev1.Module
+		Cdc    codec.Codec
+		Key    *store.KVStoreKey
+
+		AccountKeeper types.AccountKeeper
+
+		// LegacySubspace is used solely for migration of x/params managed parameters
+		LegacySubspace exported.Subspace `optional:"true"`
+	}
+
+	//nolint:revive
+	BankOutputs struct {
+		depinject.Out
+
+		BankKeeper keeper.BaseKeeper
+		Module     appmodule.AppModule
+	}
+)
 
 // Name returns the bank module's name.
 func (AppModuleBasic) Name() string { return types.ModuleName }
@@ -94,19 +130,6 @@ func (AppModuleBasic) RegisterInterfaces(registry codectypes.InterfaceRegistry) 
 	// Register legacy interfaces for migration scripts.
 	v1bank.RegisterInterfaces(registry)
 }
-
-// AppModule implements an application module for the bank module.
-type AppModule struct {
-	AppModuleBasic
-
-	keeper        keeper.Keeper
-	accountKeeper types.AccountKeeper
-
-	// legacySubspace is used solely for migration of x/params managed parameters
-	legacySubspace exported.Subspace
-}
-
-var _ appmodule.AppModule = AppModule{}
 
 // IsOnePerModuleType implements the depinject.OnePerModuleType interface.
 func (am AppModule) IsOnePerModuleType() {}
@@ -204,28 +227,6 @@ func init() {
 	appmodule.Register(&modulev1.Module{},
 		appmodule.Provide(ProvideModule),
 	)
-}
-
-//nolint:revive
-type BankInputs struct {
-	depinject.In
-
-	Config *modulev1.Module
-	Cdc    codec.Codec
-	Key    *store.KVStoreKey
-
-	AccountKeeper types.AccountKeeper
-
-	// LegacySubspace is used solely for migration of x/params managed parameters
-	LegacySubspace exported.Subspace `optional:"true"`
-}
-
-//nolint:revive
-type BankOutputs struct {
-	depinject.Out
-
-	BankKeeper keeper.BaseKeeper
-	Module     appmodule.AppModule
 }
 
 func ProvideModule(in BankInputs) BankOutputs {

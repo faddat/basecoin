@@ -14,11 +14,13 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/staking/types"
 )
 
-// Implements ValidatorSet interface
-var _ types.ValidatorSet = Keeper{}
+var (
+	// Implements ValidatorSet interface
+	_ types.ValidatorSet = Keeper{}
 
-// Implements DelegationSet interface
-var _ types.DelegationSet = Keeper{}
+	// Implements DelegationSet interface
+	_ types.DelegationSet = Keeper{}
+)
 
 // Keeper of the x/staking store
 type Keeper struct {

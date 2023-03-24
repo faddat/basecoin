@@ -36,13 +36,26 @@ import (
 
 const grpcWebContentType = "application/grpc-web"
 
-type GRPCWebTestSuite struct {
-	suite.Suite
+type (
+	GRPCWebTestSuite struct {
+		suite.Suite
 
-	cfg      network.Config
-	network  *network.Network
-	protoCdc *codec.ProtoCodec
-}
+		cfg      network.Config
+		network  *network.Network
+		protoCdc *codec.ProtoCodec
+	}
+
+	// gRPC-Web spec says that must use lower-case header/trailer names.
+	// See "HTTP wire protocols" section in
+	// https://github.com/grpc/grpc/blob/master/doc/PROTOCOL-WEB.md#protocol-differences-vs-grpc-over-http2
+	trailer struct {
+		http.Header
+	}
+
+	Trailer struct {
+		trailer
+	}
+)
 
 func (s *GRPCWebTestSuite) SetupSuite() {
 	s.T().Log("setting up integration test suite")
@@ -289,19 +302,8 @@ func headerWithFlag(flags ...string) http.Header {
 	return h
 }
 
-type Trailer struct {
-	trailer
-}
-
 func HTTPTrailerToGrpcWebTrailer(httpTrailer http.Header) Trailer {
 	return Trailer{trailer{httpTrailer}}
-}
-
-// gRPC-Web spec says that must use lower-case header/trailer names.
-// See "HTTP wire protocols" section in
-// https://github.com/grpc/grpc/blob/master/doc/PROTOCOL-WEB.md#protocol-differences-vs-grpc-over-http2
-type trailer struct {
-	http.Header
 }
 
 func (t trailer) Add(key, value string) {
