@@ -21,6 +21,28 @@ import (
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 )
 
+type (
+	// basic KV structure
+	KV struct {
+		Key   string `json:"key"`
+		Value string `json:"value"`
+	}
+
+	// What Genesis JSON is formatted as
+	GenesisJSON struct {
+		Values []KV `json:"values"`
+	}
+
+	// Manually write the handlers for this custom message
+	MsgServer interface {
+		Test(ctx context.Context, msg *KVStoreTx) (*sdk.Result, error)
+	}
+
+	MsgServerImpl struct {
+		capKeyMainStore *storetypes.KVStoreKey
+	}
+)
+
 // NewApp creates a simple mock kvstore app for testing. It should work
 // similar to a real app. Make sure rootDir is empty before running the test,
 // in order to guarantee consistent results.
@@ -83,17 +105,6 @@ func KVStoreHandler(storeKey storetypes.StoreKey) sdk.Handler {
 	}
 }
 
-// basic KV structure
-type KV struct {
-	Key   string `json:"key"`
-	Value string `json:"value"`
-}
-
-// What Genesis JSON is formatted as
-type GenesisJSON struct {
-	Values []KV `json:"values"`
-}
-
 // InitChainer returns a function that can initialize the chain
 // with key/value pairs
 func InitChainer(key storetypes.StoreKey) func(sdk.Context, abci.RequestInitChain) (abci.ResponseInitChain, error) {
@@ -136,15 +147,6 @@ func AppGenState(_ *codec.LegacyAmino, _ genutiltypes.AppGenesis, _ []json.RawMe
 func AppGenStateEmpty(_ *codec.LegacyAmino, _ genutiltypes.AppGenesis, _ []json.RawMessage) (appState json.RawMessage, err error) {
 	appState = json.RawMessage(``)
 	return appState, nil
-}
-
-// Manually write the handlers for this custom message
-type MsgServer interface {
-	Test(ctx context.Context, msg *KVStoreTx) (*sdk.Result, error)
-}
-
-type MsgServerImpl struct {
-	capKeyMainStore *storetypes.KVStoreKey
 }
 
 func _Msg_Test_Handler(srv any, ctx context.Context, dec func(any) error, interceptor grpc.UnaryServerInterceptor) (any, error) { //nolint:revive
