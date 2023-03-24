@@ -73,6 +73,18 @@ type (
 	AppModuleBasic struct {
 		cdc codec.Codec
 	}
+
+	// AppModule implements an application module for the staking module.
+	AppModule struct {
+		AppModuleBasic
+
+		keeper        *keeper.Keeper
+		accountKeeper types.AccountKeeper
+		bankKeeper    types.BankKeeper
+
+		// legacySubspace is used solely for migration of x/params managed parameters
+		legacySubspace exported.Subspace
+	}
 )
 
 // Name returns the staking module's name.
@@ -121,18 +133,6 @@ func (AppModuleBasic) GetTxCmd() *cobra.Command {
 // GetQueryCmd returns no root query command for the staking module.
 func (AppModuleBasic) GetQueryCmd() *cobra.Command {
 	return cli.GetQueryCmd()
-}
-
-// AppModule implements an application module for the staking module.
-type AppModule struct {
-	AppModuleBasic
-
-	keeper        *keeper.Keeper
-	accountKeeper types.AccountKeeper
-	bankKeeper    types.BankKeeper
-
-	// legacySubspace is used solely for migration of x/params managed parameters
-	legacySubspace exported.Subspace
 }
 
 // NewAppModule creates a new AppModule object

@@ -25,7 +25,27 @@ import (
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
 )
 
-var errCanceledInPreRun = errors.New("canceled in prerun")
+var (
+	errCanceledInPreRun                        = errors.New("canceled in prerun")
+	_                   servertypes.AppOptions = mapGetter{}
+
+	TestAddrExpected    = "tcp://127.126.125.124:12345" // expected to be used in test
+	TestAddrNotExpected = "tcp://127.127.127.127:11111" // not expected to be used in test
+)
+
+type (
+	// mapGetter is a simple implementation of servertypes.AppOptions
+	mapGetter map[string]any
+
+	// precedenceCommon is a struct that contains the common fields for the precedence tests
+	precedenceCommon struct {
+		envVarName     string
+		flagName       string
+		configTomlPath string
+
+		cmd *cobra.Command
+	}
+)
 
 // Used in each test to run the function under test via Cobra
 // but to always halt the command
@@ -240,19 +260,6 @@ func TestInterceptConfigsPreRunHandlerReadsEnvVars(t *testing.T) {
  to avoid duplication of code between tests.
 */
 
-var (
-	TestAddrExpected    = "tcp://127.126.125.124:12345" // expected to be used in test
-	TestAddrNotExpected = "tcp://127.127.127.127:11111" // not expected to be used in test
-)
-
-type precedenceCommon struct {
-	envVarName     string
-	flagName       string
-	configTomlPath string
-
-	cmd *cobra.Command
-}
-
 func newPrecedenceCommon(t *testing.T) precedenceCommon {
 	t.Helper()
 
@@ -448,10 +455,6 @@ func TestEmptyMinGasPrices(t *testing.T) {
 	require.Errorf(t, err, sdkerrors.ErrAppConfig.Error())
 }
 
-type mapGetter map[string]any
-
 func (m mapGetter) Get(key string) any {
 	return m[key]
 }
-
-var _ servertypes.AppOptions = mapGetter{}

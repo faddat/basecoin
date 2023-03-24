@@ -12,10 +12,20 @@ import (
 	storetypes "cosmossdk.io/store/types"
 )
 
-type MockContext struct {
-	db    *dbm.MemDB
-	store storetypes.CommitMultiStore
-}
+type (
+	MockContext struct {
+		db    *dbm.MemDB
+		store storetypes.CommitMultiStore
+	}
+
+	GasCountingMockContext struct {
+		GasMeter storetypes.GasMeter
+	}
+
+	debuggingGasMeter struct {
+		g storetypes.GasMeter
+	}
+)
 
 func NewMockContext() *MockContext {
 	db := dbm.NewMemDB()
@@ -34,10 +44,6 @@ func (m MockContext) KVStore(key storetypes.StoreKey) storetypes.KVStore {
 		panic(err)
 	}
 	return m.store.GetCommitKVStore(key)
-}
-
-type debuggingGasMeter struct {
-	g storetypes.GasMeter
 }
 
 func (d debuggingGasMeter) GasConsumed() storetypes.Gas {
@@ -75,10 +81,6 @@ func (d debuggingGasMeter) IsOutOfGas() bool {
 
 func (d debuggingGasMeter) String() string {
 	return d.g.String()
-}
-
-type GasCountingMockContext struct {
-	GasMeter storetypes.GasMeter
 }
 
 func NewGasCountingMockContext() *GasCountingMockContext {

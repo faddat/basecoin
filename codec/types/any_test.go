@@ -39,7 +39,7 @@ func TestNewAnyWithCustomTypeURLWithErrorNoAllocation(t *testing.T) {
 	t.SkipNow()
 
 	// make sure we're not in the middle of a GC.
-	runtime.GC()
+	runtime.GC() //nolint:revive // this is for testing
 
 	var ms1, ms2 runtime.MemStats
 	runtime.ReadMemStats(&ms1)

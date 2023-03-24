@@ -8,13 +8,20 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 )
 
-// StdTxBuilder wraps StdTx to implement to the context.TxBuilder interface.
-// Note that this type just exists for backwards compatibility with amino StdTx
-// and will not work for protobuf transactions.
-type StdTxBuilder struct {
-	StdTx
-	cdc *codec.LegacyAmino
-}
+type (
+	// StdTxBuilder wraps StdTx to implement to the context.TxBuilder interface.
+	// Note that this type just exists for backwards compatibility with amino StdTx
+	// and will not work for protobuf transactions.
+	StdTxBuilder struct {
+		StdTx
+		cdc *codec.LegacyAmino
+	}
+
+	// StdTxConfig is a context.TxConfig for StdTx
+	StdTxConfig struct {
+		Cdc *codec.LegacyAmino
+	}
+)
 
 // SetMsgs implements TxBuilder.SetMsgs
 func (s *StdTxBuilder) SetMsgs(msgs ...sdk.Msg) error {
@@ -68,11 +75,6 @@ func (s *StdTxBuilder) SetFeePayer(_ sdk.AccAddress) {}
 // AddAuxSignerData returns an error for StdTxBuilder.
 func (s *StdTxBuilder) AddAuxSignerData(_ tx.AuxSignerData) error {
 	return sdkerrors.ErrLogic.Wrap("cannot use AuxSignerData with StdTxBuilder")
-}
-
-// StdTxConfig is a context.TxConfig for StdTx
-type StdTxConfig struct {
-	Cdc *codec.LegacyAmino
 }
 
 // MarshalTx implements TxConfig.MarshalTx

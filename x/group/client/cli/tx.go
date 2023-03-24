@@ -673,10 +673,6 @@ Parameters:
 				Address:    clientCtx.GetFromAddress().String(),
 			}
 
-			if err != nil {
-				return err
-			}
-
 			if err = msg.ValidateBasic(); err != nil {
 				return fmt.Errorf("message validation failed: %w", err)
 			}
@@ -738,9 +734,6 @@ Parameters:
 				Option:     voteOption,
 				Metadata:   args[3],
 				Exec:       execFromString(execStr),
-			}
-			if err != nil {
-				return err
 			}
 
 			if err = msg.ValidateBasic(); err != nil {

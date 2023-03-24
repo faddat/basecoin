@@ -23,27 +23,44 @@ const (
 	QueryHistoricalInfo                = "historicalInfo"
 )
 
-// defines the params for the following queries:
-// - 'custom/staking/delegatorDelegations'
-// - 'custom/staking/delegatorUnbondingDelegations'
-// - 'custom/staking/delegatorValidators'
-type QueryDelegatorParams struct {
-	DelegatorAddr sdk.AccAddress
-}
+type (
+	// defines the params for the following queries:
+	// - 'custom/staking/delegatorDelegations'
+	// - 'custom/staking/delegatorUnbondingDelegations'
+	// - 'custom/staking/delegatorValidators'
+	QueryDelegatorParams struct {
+		DelegatorAddr sdk.AccAddress
+	}
+
+	// QueryValidatorsParams defines the params for the following queries:
+	// - 'custom/staking/validators'
+	QueryValidatorsParams struct {
+		Page, Limit int
+		Status      string
+	}
+
+	// defines the params for the following queries:
+	// - 'custom/staking/validator'
+	// - 'custom/staking/validatorDelegations'
+	// - 'custom/staking/validatorUnbondingDelegations'
+	QueryValidatorParams struct {
+		ValidatorAddr sdk.ValAddress
+		Page, Limit   int
+	}
+
+	// defines the params for the following queries:
+	// - 'custom/staking/redelegation'
+	QueryRedelegationParams struct {
+		DelegatorAddr    sdk.AccAddress
+		SrcValidatorAddr sdk.ValAddress
+		DstValidatorAddr sdk.ValAddress
+	}
+)
 
 func NewQueryDelegatorParams(delegatorAddr sdk.AccAddress) QueryDelegatorParams {
 	return QueryDelegatorParams{
 		DelegatorAddr: delegatorAddr,
 	}
-}
-
-// defines the params for the following queries:
-// - 'custom/staking/validator'
-// - 'custom/staking/validatorDelegations'
-// - 'custom/staking/validatorUnbondingDelegations'
-type QueryValidatorParams struct {
-	ValidatorAddr sdk.ValAddress
-	Page, Limit   int
 }
 
 func NewQueryValidatorParams(validatorAddr sdk.ValAddress, page, limit int) QueryValidatorParams {
@@ -54,27 +71,12 @@ func NewQueryValidatorParams(validatorAddr sdk.ValAddress, page, limit int) Quer
 	}
 }
 
-// defines the params for the following queries:
-// - 'custom/staking/redelegation'
-type QueryRedelegationParams struct {
-	DelegatorAddr    sdk.AccAddress
-	SrcValidatorAddr sdk.ValAddress
-	DstValidatorAddr sdk.ValAddress
-}
-
 func NewQueryRedelegationParams(delegatorAddr sdk.AccAddress, srcValidatorAddr, dstValidatorAddr sdk.ValAddress) QueryRedelegationParams {
 	return QueryRedelegationParams{
 		DelegatorAddr:    delegatorAddr,
 		SrcValidatorAddr: srcValidatorAddr,
 		DstValidatorAddr: dstValidatorAddr,
 	}
-}
-
-// QueryValidatorsParams defines the params for the following queries:
-// - 'custom/staking/validators'
-type QueryValidatorsParams struct {
-	Page, Limit int
-	Status      string
 }
 
 func NewQueryValidatorsParams(page, limit int, status string) QueryValidatorsParams {

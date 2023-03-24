@@ -14,9 +14,17 @@ import (
 // defaultPageLimit is the default limit value for pagination requests.
 const defaultPageLimit = 100
 
-// IteratorFunc is a function type that satisfies the Iterator interface
-// The passed function is called on LoadNext operations.
-type IteratorFunc func(dest proto.Message) (RowID, error)
+type (
+	// IteratorFunc is a function type that satisfies the Iterator interface
+	// The passed function is called on LoadNext operations.
+	IteratorFunc func(dest proto.Message) (RowID, error)
+
+	// LimitedIterator returns up to defined maximum number of elements.
+	LimitedIterator struct {
+		remainingCount int
+		parentIterator Iterator
+	}
+)
 
 // LoadNext loads the next value in the sequence into the pointer passed as dest and returns the key. If there
 // are no more items the errors.ErrORMIteratorDone error is returned
@@ -49,12 +57,6 @@ func NewInvalidIterator() Iterator {
 	return IteratorFunc(func(dest proto.Message) (RowID, error) {
 		return nil, errors.ErrORMInvalidIterator
 	})
-}
-
-// LimitedIterator returns up to defined maximum number of elements.
-type LimitedIterator struct {
-	remainingCount int
-	parentIterator Iterator
 }
 
 // LimitIterator returns a new iterator that returns max number of elements.

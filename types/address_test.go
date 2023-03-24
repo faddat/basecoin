@@ -132,6 +132,7 @@ func (s *addressTestSuite) TestValAddr() {
 	pubBz := make([]byte, ed25519.PubKeySize)
 	pub := &ed25519.PubKey{Key: pubBz}
 
+	// test valid addresses
 	for i := 0; i < 20; i++ {
 		rand.Read(pub.Key)
 
@@ -150,9 +151,8 @@ func (s *addressTestSuite) TestValAddr() {
 		res, err = types.ValAddressFromHex(str)
 		s.Require().Nil(err)
 		s.Require().Equal(acc, res)
-
 	}
-
+	// test invalid strings
 	for _, str := range invalidStrs {
 		_, err := types.ValAddressFromHex(str)
 		s.Require().NotNil(err)

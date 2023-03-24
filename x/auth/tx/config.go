@@ -61,7 +61,7 @@ func (g config) NewTxBuilder() client.TxBuilder {
 }
 
 // WrapTxBuilder returns a builder from provided transaction
-func (g config) WrapTxBuilder(newTx sdk.Tx) (client.TxBuilder, error) {
+func (config) WrapTxBuilder(newTx sdk.Tx) (client.TxBuilder, error) {
 	newBuilder, ok := newTx.(*wrapper)
 	if !ok {
 		return nil, fmt.Errorf("expected %T, got %T", &wrapper{}, newTx)

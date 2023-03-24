@@ -25,15 +25,13 @@ var (
 	TypeMsgExec   = sdk.MsgTypeURL(&authz.MsgExec{})
 )
 
-// Simulation operation weights constants
 const (
+	// Simulation operation weights constants
 	OpWeightMsgGrant = "op_weight_msg_grant"
 	OpWeightRevoke   = "op_weight_msg_revoke"
 	OpWeightExec     = "op_weight_msg_execute"
-)
 
-// authz operations weights
-const (
+	// authz operations weights
 	WeightGrant  = 100
 	WeightRevoke = 90
 	WeightExec   = 90
@@ -278,7 +276,6 @@ func SimulateMsgExec(cdc *codec.ProtoCodec, ak authz.AccountKeeper, bk authz.Ban
 				return simtypes.NoOpMsg(authz.ModuleName, TypeMsgExec, err.Error()), nil, nil
 			}
 			return simtypes.NoOpMsg(authz.ModuleName, TypeMsgExec, err.Error()), nil, err
-
 		}
 
 		msgExec := authz.NewMsgExec(granteeAddr, msg)

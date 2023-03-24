@@ -20,23 +20,32 @@ var (
 	_ TableExportable = &table{}
 )
 
-// table is the high level object to storage mapper functionality. Persistent
-// entities are stored by an unique identifier called `RowID`. The table struct
-// does not:
-// - enforce uniqueness of the `RowID`
-// - enforce prefix uniqueness of keys, i.e. not allowing one key to be a prefix
-// of another
-// - optimize Gas usage conditions
-// The caller must ensure that these things are handled. The table struct is
-// private, so that we only have custom tables built on top of table, that do satisfy
-// these requirements.
-type table struct {
-	model       reflect.Type
-	prefix      [2]byte
-	afterSet    []AfterSetInterceptor
-	afterDelete []AfterDeleteInterceptor
-	cdc         codec.Codec
-}
+type (
+	// table is the high level object to storage mapper functionality. Persistent
+	// entities are stored by an unique identifier called `RowID`. The table struct
+	// does not:
+	// - enforce uniqueness of the `RowID`
+	// - enforce prefix uniqueness of keys, i.e. not allowing one key to be a prefix
+	// of another
+	// - optimize Gas usage conditions
+	// The caller must ensure that these things are handled. The table struct is
+	// private, so that we only have custom tables built on top of table, that do satisfy
+	// these requirements.
+	table struct {
+		model       reflect.Type
+		prefix      [2]byte
+		afterSet    []AfterSetInterceptor
+		afterDelete []AfterDeleteInterceptor
+		cdc         codec.Codec
+	}
+
+	// typeSafeIterator is initialized with a type safe RowGetter only.
+	typeSafeIterator struct {
+		store     types.KVStore
+		rowGetter RowGetter
+		it        types.Iterator
+	}
+)
 
 // newTable creates a new table
 func newTable(prefix [2]byte, model proto.Message, cdc codec.Codec) (*table, error) {
@@ -292,13 +301,6 @@ func (a table) keys(store types.KVStore) [][]byte {
 		keys = append(keys, it.Key())
 	}
 	return keys
-}
-
-// typeSafeIterator is initialized with a type safe RowGetter only.
-type typeSafeIterator struct {
-	store     types.KVStore
-	rowGetter RowGetter
-	it        types.Iterator
 }
 
 func (i typeSafeIterator) LoadNext(dest proto.Message) (RowID, error) {

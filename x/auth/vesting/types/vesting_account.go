@@ -17,6 +17,14 @@ var (
 	_ vestexported.VestingAccount = (*ContinuousVestingAccount)(nil)
 	_ vestexported.VestingAccount = (*PeriodicVestingAccount)(nil)
 	_ vestexported.VestingAccount = (*DelayedVestingAccount)(nil)
+	_ vestexported.VestingAccount = (*ContinuousVestingAccount)(nil)
+	_ authtypes.GenesisAccount    = (*ContinuousVestingAccount)(nil)
+	_ vestexported.VestingAccount = (*PeriodicVestingAccount)(nil)
+	_ authtypes.GenesisAccount    = (*PeriodicVestingAccount)(nil)
+	_ vestexported.VestingAccount = (*DelayedVestingAccount)(nil)
+	_ authtypes.GenesisAccount    = (*DelayedVestingAccount)(nil)
+	_ vestexported.VestingAccount = (*PermanentLockedAccount)(nil)
+	_ authtypes.GenesisAccount    = (*PermanentLockedAccount)(nil)
 )
 
 // Base Vesting Account
@@ -152,11 +160,6 @@ func (bva BaseVestingAccount) Validate() error {
 
 // Continuous Vesting Account
 
-var (
-	_ vestexported.VestingAccount = (*ContinuousVestingAccount)(nil)
-	_ authtypes.GenesisAccount    = (*ContinuousVestingAccount)(nil)
-)
-
 // NewContinuousVestingAccountRaw creates a new ContinuousVestingAccount object from BaseVestingAccount
 func NewContinuousVestingAccountRaw(bva *BaseVestingAccount, startTime int64) *ContinuousVestingAccount {
 	return &ContinuousVestingAccount{
@@ -241,11 +244,6 @@ func (cva ContinuousVestingAccount) Validate() error {
 }
 
 // Periodic Vesting Account
-
-var (
-	_ vestexported.VestingAccount = (*PeriodicVestingAccount)(nil)
-	_ authtypes.GenesisAccount    = (*PeriodicVestingAccount)(nil)
-)
 
 // NewPeriodicVestingAccountRaw creates a new PeriodicVestingAccount object from BaseVestingAccount
 func NewPeriodicVestingAccountRaw(bva *BaseVestingAccount, startTime int64, periods Periods) *PeriodicVestingAccount {
@@ -361,11 +359,6 @@ func (pva PeriodicVestingAccount) Validate() error {
 
 // Delayed Vesting Account
 
-var (
-	_ vestexported.VestingAccount = (*DelayedVestingAccount)(nil)
-	_ authtypes.GenesisAccount    = (*DelayedVestingAccount)(nil)
-)
-
 // NewDelayedVestingAccountRaw creates a new DelayedVestingAccount object from BaseVestingAccount
 func NewDelayedVestingAccountRaw(bva *BaseVestingAccount) *DelayedVestingAccount {
 	return &DelayedVestingAccount{
@@ -425,11 +418,6 @@ func (dva DelayedVestingAccount) Validate() error {
 
 //-----------------------------------------------------------------------------
 // Permanent Locked Vesting Account
-
-var (
-	_ vestexported.VestingAccount = (*PermanentLockedAccount)(nil)
-	_ authtypes.GenesisAccount    = (*PermanentLockedAccount)(nil)
-)
 
 // NewPermanentLockedAccount returns a PermanentLockedAccount
 func NewPermanentLockedAccount(baseAcc *authtypes.BaseAccount, coins sdk.Coins) *PermanentLockedAccount {

@@ -10,18 +10,20 @@ import (
 	"github.com/cosmos/cosmos-sdk/testutil/testdata"
 )
 
-type TypeWithInterface struct {
-	Animal testdata.Animal `json:"animal"`
-	X      int64           `json:"x,omitempty"`
-}
+type (
+	TypeWithInterface struct {
+		Animal testdata.Animal `json:"animal"`
+		X      int64           `json:"x,omitempty"`
+	}
 
-type Suite struct {
-	suite.Suite
-	cdc  *amino.Codec
-	a    TypeWithInterface
-	b    testdata.HasAnimal
-	spot *testdata.Dog
-}
+	Suite struct {
+		suite.Suite
+		cdc  *amino.Codec
+		a    TypeWithInterface
+		b    testdata.HasAnimal
+		spot *testdata.Dog
+	}
+)
 
 func (s *Suite) SetupTest() {
 	s.cdc = amino.NewCodec()

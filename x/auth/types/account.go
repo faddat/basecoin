@@ -23,6 +23,47 @@ var (
 	_ sdk.ModuleAccountI                 = (*ModuleAccount)(nil)
 )
 
+type (
+	// AccountI is an interface used to store coins at a given address within state.
+	// It presumes a notion of sequence numbers for replay protection,
+	// a notion of account numbers for replay protection for previously pruned accounts,
+	// and a pubkey for authentication purposes.
+	//
+	// Many complex conditions can be used in the concrete struct which implements AccountI.
+	//
+	// Deprecated: Use `AccountI` from types package instead.
+	AccountI interface {
+		sdk.AccountI
+	}
+
+	// ModuleAccountI defines an account interface for modules that hold tokens in
+	// an escrow.
+	//
+	// Deprecated: Use `ModuleAccountI` from types package instead.
+	ModuleAccountI interface {
+		sdk.ModuleAccountI
+	}
+
+	// GenesisAccounts defines a slice of GenesisAccount objects
+	GenesisAccounts []GenesisAccount
+
+	moduleAccountPretty struct {
+		Address       sdk.AccAddress `json:"address"`
+		PubKey        string         `json:"public_key"`
+		AccountNumber uint64         `json:"account_number"`
+		Sequence      uint64         `json:"sequence"`
+		Name          string         `json:"name"`
+		Permissions   []string       `json:"permissions"`
+	}
+
+	// GenesisAccount defines a genesis account that embeds an AccountI with validation capabilities.
+	GenesisAccount interface {
+		sdk.AccountI
+
+		Validate() error
+	}
+)
+
 // NewBaseAccount creates a new BaseAccount object
 //
 //nolint:interfacer
@@ -227,15 +268,6 @@ func (ma ModuleAccount) Validate() error {
 	return ma.BaseAccount.Validate()
 }
 
-type moduleAccountPretty struct {
-	Address       sdk.AccAddress `json:"address"`
-	PubKey        string         `json:"public_key"`
-	AccountNumber uint64         `json:"account_number"`
-	Sequence      uint64         `json:"sequence"`
-	Name          string         `json:"name"`
-	Permissions   []string       `json:"permissions"`
-}
-
 // MarshalJSON returns the JSON representation of a ModuleAccount.
 func (ma ModuleAccount) MarshalJSON() ([]byte, error) {
 	accAddr, err := sdk.AccAddressFromBech32(ma.Address)
@@ -267,29 +299,6 @@ func (ma *ModuleAccount) UnmarshalJSON(bz []byte) error {
 	return nil
 }
 
-// AccountI is an interface used to store coins at a given address within state.
-// It presumes a notion of sequence numbers for replay protection,
-// a notion of account numbers for replay protection for previously pruned accounts,
-// and a pubkey for authentication purposes.
-//
-// Many complex conditions can be used in the concrete struct which implements AccountI.
-//
-// Deprecated: Use `AccountI` from types package instead.
-type AccountI interface {
-	sdk.AccountI
-}
-
-// ModuleAccountI defines an account interface for modules that hold tokens in
-// an escrow.
-//
-// Deprecated: Use `ModuleAccountI` from types package instead.
-type ModuleAccountI interface {
-	sdk.ModuleAccountI
-}
-
-// GenesisAccounts defines a slice of GenesisAccount objects
-type GenesisAccounts []GenesisAccount
-
 // Contains returns true if the given address exists in a slice of GenesisAccount
 // objects.
 func (ga GenesisAccounts) Contains(addr sdk.Address) bool {
@@ -300,11 +309,4 @@ func (ga GenesisAccounts) Contains(addr sdk.Address) bool {
 	}
 
 	return false
-}
-
-// GenesisAccount defines a genesis account that embeds an AccountI with validation capabilities.
-type GenesisAccount interface {
-	sdk.AccountI
-
-	Validate() error
 }

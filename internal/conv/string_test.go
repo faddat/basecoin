@@ -24,7 +24,7 @@ func (s *StringSuite) TestUnsafeStrToBytes() {
 	// the underlying array in []bytes is accessible after GC will finish swapping.
 	for i := 0; i < 5; i++ {
 		b := unsafeConvertStr()
-		runtime.GC()
+		runtime.GC() //nolint:revive // this is for testing
 		<-time.NewTimer(2 * time.Millisecond).C
 		b2 := append(b, 'd') //nolint:gocritic // append is fine here
 		s.Equal("abc", string(b))
@@ -41,7 +41,7 @@ func (s *StringSuite) TestUnsafeBytesToStr() {
 	// the underlying array in []bytes is accessible after GC will finish swapping.
 	for i := 0; i < 5; i++ {
 		str := unsafeConvertBytes()
-		runtime.GC()
+		runtime.GC() //nolint:revive // this is for testing
 		<-time.NewTimer(2 * time.Millisecond).C
 		s.Equal("abc", str)
 	}

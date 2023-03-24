@@ -59,6 +59,10 @@ issues:
   max-same-issues: 10000
 
 linters-settings:
+  dogsled:
+    # Checks assignments with too many blank identifiers.
+    # Default: 2
+    max-blank-identifiers: 4
   thelper:
     test:
       # Check *testing.T is first param (or after context.Context) of helper function.

@@ -24,7 +24,12 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 )
 
-var errFoo = errors.New("dummy")
+var (
+	_      appmodule.AppModule   = MockCoreAppModule{}
+	_      appmodule.HasGenesis  = MockCoreAppModule{}
+	_      appmodule.HasServices = MockCoreAppModule{}
+	errFoo                       = errors.New("dummy")
+)
 
 func TestBasicManager(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
@@ -534,9 +539,3 @@ func (MockCoreAppModule) ExportGenesis(_ context.Context, target appmodule.Genes
 	wrt.Write([]byte(`"someKey"`))
 	return wrt.Close()
 }
-
-var (
-	_ appmodule.AppModule   = MockCoreAppModule{}
-	_ appmodule.HasGenesis  = MockCoreAppModule{}
-	_ appmodule.HasServices = MockCoreAppModule{}
-)

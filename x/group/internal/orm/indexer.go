@@ -8,17 +8,20 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/group/errors"
 )
 
-// IndexerFunc creates one or multiple index keys for the source object.
-type IndexerFunc func(value any) ([]any, error)
+type (
 
-// IndexerFunc creates exactly one index key for the source object.
-type UniqueIndexerFunc func(value any) (any, error)
+	// IndexerFunc creates one or multiple index keys for the source object.
+	IndexerFunc func(value any) ([]any, error)
 
-// Indexer manages the persistence of an Index based on searchable keys and operations.
-type Indexer struct {
-	indexerFunc IndexerFunc
-	addFunc     func(store storetypes.KVStore, secondaryIndexKey any, rowID RowID) error
-}
+	// IndexerFunc creates exactly one index key for the source object.
+	UniqueIndexerFunc func(value any) (any, error)
+
+	// Indexer manages the persistence of an Index based on searchable keys and operations.
+	Indexer struct {
+		indexerFunc IndexerFunc
+		addFunc     func(store storetypes.KVStore, secondaryIndexKey any, rowID RowID) error
+	}
+)
 
 // NewIndexer returns an indexer that supports multiple reference keys for an entity.
 func NewIndexer(indexerFunc IndexerFunc) (*Indexer, error) {

@@ -10,17 +10,17 @@ type (
 		Value       any
 		ValidatorFn ValueValidatorFn
 	}
+
+	// ParamSetPairs Slice of KeyFieldPair
+	ParamSetPairs []ParamSetPair
+
+	// ParamSet defines an interface for structs containing parameters for a module
+	ParamSet interface {
+		ParamSetPairs() ParamSetPairs
+	}
 )
 
 // NewParamSetPair creates a new ParamSetPair instance.
 func NewParamSetPair(key []byte, value any, vfn ValueValidatorFn) ParamSetPair {
 	return ParamSetPair{key, value, vfn}
-}
-
-// ParamSetPairs Slice of KeyFieldPair
-type ParamSetPairs []ParamSetPair
-
-// ParamSet defines an interface for structs containing parameters for a module
-type ParamSet interface {
-	ParamSetPairs() ParamSetPairs
 }

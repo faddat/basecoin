@@ -11,15 +11,17 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
-// RecoveryHandler handles recovery() object.
-// Return a non-nil error if recoveryObj was processed.
-// Return nil if recoveryObj was not processed.
-type RecoveryHandler func(recoveryObj any) error
+type (
+	// RecoveryHandler handles recovery() object.
+	// Return a non-nil error if recoveryObj was processed.
+	// Return nil if recoveryObj was not processed.
+	RecoveryHandler func(recoveryObj any) error
 
-// recoveryMiddleware is wrapper for RecoveryHandler to create chained recovery handling.
-// returns (recoveryMiddleware, nil) if recoveryObj was not processed and should be passed to the next middleware in chain.
-// returns (nil, error) if recoveryObj was processed and middleware chain processing should be stopped.
-type recoveryMiddleware func(recoveryObj any) (recoveryMiddleware, error)
+	// recoveryMiddleware is wrapper for RecoveryHandler to create chained recovery handling.
+	// returns (recoveryMiddleware, nil) if recoveryObj was not processed and should be passed to the next middleware in chain.
+	// returns (nil, error) if recoveryObj was processed and middleware chain processing should be stopped.
+	recoveryMiddleware func(recoveryObj any) (recoveryMiddleware, error)
+)
 
 // processRecovery processes recoveryMiddleware chain for recovery() object.
 // Chain processing stops on non-nil error or when chain is processed.

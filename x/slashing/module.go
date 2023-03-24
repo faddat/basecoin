@@ -34,17 +34,58 @@ import (
 // ConsensusVersion defines the current x/slashing module consensus version.
 const ConsensusVersion = 3
 
+// Module interface assertions
 var (
 	_ module.AppModuleBasic      = AppModuleBasic{}
 	_ module.AppModuleSimulation = AppModule{}
+	_ module.AppModuleBasic      = AppModuleBasic{}
 )
 
-// AppModuleBasic defines the basic application module used by the slashing module.
-type AppModuleBasic struct {
-	cdc codec.Codec
-}
+type (
+	// AppModuleBasic defines the basic application module used by the slashing module.
+	AppModuleBasic struct {
+		cdc codec.Codec
+	}
 
-var _ module.AppModuleBasic = AppModuleBasic{}
+	//nolint:revive
+	SlashingInputs struct {
+		depinject.In
+
+		Config      *modulev1.Module
+		Key         *store.KVStoreKey
+		Cdc         codec.Codec
+		LegacyAmino *codec.LegacyAmino
+
+		AccountKeeper types.AccountKeeper
+		BankKeeper    types.BankKeeper
+		StakingKeeper types.StakingKeeper
+
+		// LegacySubspace is used solely for migration of x/params managed parameters
+		LegacySubspace exported.Subspace
+	}
+
+	//nolint:revive
+	SlashingOutputs struct {
+		depinject.Out
+
+		Keeper keeper.Keeper
+		Module appmodule.AppModule
+		Hooks  staking.StakingHooksWrapper
+	}
+
+	// AppModule implements an application module for the slashing module.
+	AppModule struct {
+		AppModuleBasic
+
+		keeper        keeper.Keeper
+		accountKeeper types.AccountKeeper
+		bankKeeper    types.BankKeeper
+		stakingKeeper types.StakingKeeper
+
+		// legacySubspace is used solely for migration of x/slashing managed parameters
+		legacySubspace exported.Subspace
+	}
+)
 
 // Name returns the slashing module's name.
 func (AppModuleBasic) Name() string {
@@ -92,19 +133,6 @@ func (AppModuleBasic) GetTxCmd() *cobra.Command {
 // GetQueryCmd returns no root query command for the slashing module.
 func (AppModuleBasic) GetQueryCmd() *cobra.Command {
 	return cli.GetQueryCmd()
-}
-
-// AppModule implements an application module for the slashing module.
-type AppModule struct {
-	AppModuleBasic
-
-	keeper        keeper.Keeper
-	accountKeeper types.AccountKeeper
-	bankKeeper    types.BankKeeper
-	stakingKeeper types.StakingKeeper
-
-	// legacySubspace is used solely for migration of x/slashing managed parameters
-	legacySubspace exported.Subspace
 }
 
 // NewAppModule creates a new AppModule object
@@ -210,32 +238,6 @@ func init() {
 		&modulev1.Module{},
 		appmodule.Provide(ProvideModule),
 	)
-}
-
-//nolint:revive
-type SlashingInputs struct {
-	depinject.In
-
-	Config      *modulev1.Module
-	Key         *store.KVStoreKey
-	Cdc         codec.Codec
-	LegacyAmino *codec.LegacyAmino
-
-	AccountKeeper types.AccountKeeper
-	BankKeeper    types.BankKeeper
-	StakingKeeper types.StakingKeeper
-
-	// LegacySubspace is used solely for migration of x/params managed parameters
-	LegacySubspace exported.Subspace
-}
-
-//nolint:revive
-type SlashingOutputs struct {
-	depinject.Out
-
-	Keeper keeper.Keeper
-	Module appmodule.AppModule
-	Hooks  staking.StakingHooksWrapper
 }
 
 func ProvideModule(in SlashingInputs) SlashingOutputs {

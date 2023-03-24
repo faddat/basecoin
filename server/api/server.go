@@ -26,22 +26,30 @@ import (
 	grpctypes "github.com/cosmos/cosmos-sdk/types/grpc"
 )
 
-// Server defines the server's API interface.
-type Server struct {
-	Router            *mux.Router
-	GRPCGatewayRouter *runtime.ServeMux
-	ClientCtx         client.Context
-	GRPCSrv           *grpc.Server
-	logger            log.Logger
-	metrics           *telemetry.Metrics
+type (
+	// Server defines the server's API interface.
+	Server struct {
+		Router            *mux.Router
+		GRPCGatewayRouter *runtime.ServeMux
+		ClientCtx         client.Context
+		GRPCSrv           *grpc.Server
+		logger            log.Logger
+		metrics           *telemetry.Metrics
 
-	// Start() is blocking and generally called from a separate goroutine.
-	// Close() can be called asynchronously and access shared memory
-	// via the listener. Therefore, we sync access to Start and Close with
-	// this mutex to avoid data races.
-	mtx      sync.Mutex
-	listener net.Listener
-}
+		// Start() is blocking and generally called from a separate goroutine.
+		// Close() can be called asynchronously and access shared memory
+		// via the listener. Therefore, we sync access to Start and Close with
+		// this mutex to avoid data races.
+		mtx      sync.Mutex
+		listener net.Listener
+	}
+
+	// errorResponse defines the attributes of a JSON error response.
+	errorResponse struct {
+		Code  int    `json:"code,omitempty"`
+		Error string `json:"error"`
+	}
+)
 
 // CustomGRPCHeaderMatcher for mapping request headers to
 // GRPC metadata.
@@ -199,12 +207,6 @@ func (s *Server) registerMetrics() {
 	}
 
 	s.Router.HandleFunc("/metrics", metricsHandler).Methods("GET")
-}
-
-// errorResponse defines the attributes of a JSON error response.
-type errorResponse struct {
-	Code  int    `json:"code,omitempty"`
-	Error string `json:"error"`
 }
 
 // newErrorResponse creates a new errorResponse instance.

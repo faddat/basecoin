@@ -49,6 +49,33 @@ var DefaultConsensusParams = &cmtproto.ConsensusParams{
 	},
 }
 
+type (
+
+	// AppOptionsMap is a stub implementing AppOptions which can get data from a map
+	AppOptionsMap map[string]any
+
+	// EmptyAppOptions is a stub implementing AppOptions
+	EmptyAppOptions struct{}
+
+	GenesisAccount struct {
+		authtypes.GenesisAccount
+		Coins sdk.Coins
+	}
+
+	// StartupConfig defines the startup configuration new a test application.
+	//
+	// ValidatorSet defines a custom validator set to be validating the app.
+	// BaseAppOption defines the additional operations that must be run on baseapp before app start.
+	// AtGenesis defines if the app started should already have produced block or not.
+	StartupConfig struct {
+		ValidatorSet    func() (*cmttypes.ValidatorSet, error)
+		BaseAppOption   runtime.BaseAppOption
+		AtGenesis       bool
+		GenesisAccounts []GenesisAccount
+		DB              dbm.DB
+	}
+)
+
 // CreateRandomValidatorSet creates a validator set with one random validator
 func CreateRandomValidatorSet() (*cmttypes.ValidatorSet, error) {
 	privVal := mock.NewPV()
@@ -61,24 +88,6 @@ func CreateRandomValidatorSet() (*cmttypes.ValidatorSet, error) {
 	validator := cmttypes.NewValidator(pubKey, 1)
 
 	return cmttypes.NewValidatorSet([]*cmttypes.Validator{validator}), nil
-}
-
-type GenesisAccount struct {
-	authtypes.GenesisAccount
-	Coins sdk.Coins
-}
-
-// StartupConfig defines the startup configuration new a test application.
-//
-// ValidatorSet defines a custom validator set to be validating the app.
-// BaseAppOption defines the additional operations that must be run on baseapp before app start.
-// AtGenesis defines if the app started should already have produced block or not.
-type StartupConfig struct {
-	ValidatorSet    func() (*cmttypes.ValidatorSet, error)
-	BaseAppOption   runtime.BaseAppOption
-	AtGenesis       bool
-	GenesisAccounts []GenesisAccount
-	DB              dbm.DB
 }
 
 func DefaultStartUpConfig() StartupConfig {
@@ -257,16 +266,10 @@ func GenesisStateWithValSet(
 	return genesisState, nil
 }
 
-// EmptyAppOptions is a stub implementing AppOptions
-type EmptyAppOptions struct{}
-
 // Get implements AppOptions
-func (ao EmptyAppOptions) Get(_ string) any {
+func (EmptyAppOptions) Get(_ string) any {
 	return nil
 }
-
-// AppOptionsMap is a stub implementing AppOptions which can get data from a map
-type AppOptionsMap map[string]any
 
 func (m AppOptionsMap) Get(key string) any {
 	v, ok := m[key]

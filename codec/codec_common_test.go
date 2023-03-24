@@ -11,10 +11,26 @@ import (
 	"github.com/cosmos/cosmos-sdk/testutil/testdata"
 )
 
-type interfaceMarshaler struct {
-	marshal   func(i proto.Message) ([]byte, error)
-	unmarshal func(bz []byte, ptr any) error
-}
+type (
+	interfaceMarshaler struct {
+		marshal   func(i proto.Message) ([]byte, error)
+		unmarshal func(bz []byte, ptr any) error
+	}
+
+	mustMarshaler struct {
+		marshal       func(i proto.Message) ([]byte, error)
+		mustMarshal   func(i proto.Message) []byte
+		unmarshal     func(bz []byte, ptr proto.Message) error
+		mustUnmarshal func(bz []byte, ptr proto.Message)
+	}
+	testCase struct {
+		name         string
+		input        proto.Message
+		recv         proto.Message
+		marshalErr   bool
+		unmarshalErr bool
+	}
+)
 
 func testInterfaceMarshaling(require *require.Assertions, cdc interfaceMarshaler, isAminoBin bool) {
 	_, err := cdc.marshal(nil)
@@ -47,21 +63,6 @@ func testInterfaceMarshaling(require *require.Assertions, cdc interfaceMarshaler
 
 	var cat testdata.Cat
 	require.Error(cdc.unmarshal(bz, &cat))
-}
-
-type mustMarshaler struct {
-	marshal       func(i proto.Message) ([]byte, error)
-	mustMarshal   func(i proto.Message) []byte
-	unmarshal     func(bz []byte, ptr proto.Message) error
-	mustUnmarshal func(bz []byte, ptr proto.Message)
-}
-
-type testCase struct {
-	name         string
-	input        proto.Message
-	recv         proto.Message
-	marshalErr   bool
-	unmarshalErr bool
 }
 
 func testMarshalingTestCase(require *require.Assertions, tc testCase, m mustMarshaler) {

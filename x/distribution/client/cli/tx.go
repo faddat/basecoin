@@ -70,7 +70,6 @@ func newSplitAndApply(
 			return err
 		}
 	}
-
 	return nil
 }
 

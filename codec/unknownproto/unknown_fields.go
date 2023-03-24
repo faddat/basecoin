@@ -20,9 +20,104 @@ import (
 
 const bit11NonCritical = 1 << 10
 
-type descriptorIface interface {
-	Descriptor() ([]byte, []int)
-}
+type (
+	descriptorIface interface {
+		Descriptor() ([]byte, []int)
+	}
+
+	// DefaultAnyResolver is a default implementation of AnyResolver which uses
+	// the default encoding of type URLs as specified by the protobuf specification.
+	DefaultAnyResolver struct{}
+
+	// descriptorMatch is a cache of the descriptor for a given type.
+	descriptorMatch struct {
+		cache map[int32]*descriptor.FieldDescriptorProto
+		desc  *descriptor.DescriptorProto
+	}
+
+	// errMismatchedWireType describes a mismatch between
+	// expected and got wireTypes for a specific tag number.
+	errMismatchedWireType struct {
+		Type         string
+		GotWireType  protowire.Type
+		WantWireType protowire.Type
+		TagNum       protowire.Number
+	}
+)
+
+var (
+	_ error = (*errMismatchedWireType)(nil)
+
+	// descrprotoCacheMu protects the descprotoCache.
+	descprotoCacheMu sync.RWMutex
+	// descprotoCache is a cache of the descriptor for a given type.
+	descprotoCache = make(map[reflect.Type]*descriptorMatch)
+
+	// DefaultAnyResolver is the default implementation of AnyResolver.
+	_ jsonpb.AnyResolver = DefaultAnyResolver{}
+
+	// checks is a mapping of protowire.Type to supported descriptor.FieldDescriptorProto_Type.
+	// it is implemented this way so as to have constant time lookups and avoid the overhead
+	// from O(n) walking of switch. The change to using this mapping boosts throughput by about 200%.
+	checks = [...]map[descriptor.FieldDescriptorProto_Type]bool{
+		// "0	Varint: int32, int64, uint32, uint64, sint32, sint64, bool, enum"
+		0: {
+			descriptor.FieldDescriptorProto_TYPE_INT32:  true,
+			descriptor.FieldDescriptorProto_TYPE_INT64:  true,
+			descriptor.FieldDescriptorProto_TYPE_UINT32: true,
+			descriptor.FieldDescriptorProto_TYPE_UINT64: true,
+			descriptor.FieldDescriptorProto_TYPE_SINT32: true,
+			descriptor.FieldDescriptorProto_TYPE_SINT64: true,
+			descriptor.FieldDescriptorProto_TYPE_BOOL:   true,
+			descriptor.FieldDescriptorProto_TYPE_ENUM:   true,
+		},
+
+		// "1	64-bit:	fixed64, sfixed64, double"
+		1: {
+			descriptor.FieldDescriptorProto_TYPE_FIXED64:  true,
+			descriptor.FieldDescriptorProto_TYPE_SFIXED64: true,
+			descriptor.FieldDescriptorProto_TYPE_DOUBLE:   true,
+		},
+
+		// "2	Length-delimited: string, bytes, embedded messages, packed repeated fields"
+		2: {
+			descriptor.FieldDescriptorProto_TYPE_STRING:  true,
+			descriptor.FieldDescriptorProto_TYPE_BYTES:   true,
+			descriptor.FieldDescriptorProto_TYPE_MESSAGE: true,
+			// The following types can be packed repeated.
+			// ref: "Only repeated fields of primitive numeric types (types which use the varint, 32-bit, or 64-bit wire types) can be declared "packed"."
+			// ref: https://developers.google.com/protocol-buffers/docs/encoding#packed
+			descriptor.FieldDescriptorProto_TYPE_INT32:    true,
+			descriptor.FieldDescriptorProto_TYPE_INT64:    true,
+			descriptor.FieldDescriptorProto_TYPE_UINT32:   true,
+			descriptor.FieldDescriptorProto_TYPE_UINT64:   true,
+			descriptor.FieldDescriptorProto_TYPE_SINT32:   true,
+			descriptor.FieldDescriptorProto_TYPE_SINT64:   true,
+			descriptor.FieldDescriptorProto_TYPE_BOOL:     true,
+			descriptor.FieldDescriptorProto_TYPE_ENUM:     true,
+			descriptor.FieldDescriptorProto_TYPE_FIXED64:  true,
+			descriptor.FieldDescriptorProto_TYPE_SFIXED64: true,
+			descriptor.FieldDescriptorProto_TYPE_DOUBLE:   true,
+		},
+
+		// "3	Start group:	groups (deprecated)"
+		3: {
+			descriptor.FieldDescriptorProto_TYPE_GROUP: true,
+		},
+
+		// "4	End group:	groups (deprecated)"
+		4: {
+			descriptor.FieldDescriptorProto_TYPE_GROUP: true,
+		},
+
+		// "5	32-bit:	fixed32, sfixed32, float"
+		5: {
+			descriptor.FieldDescriptorProto_TYPE_FIXED32:  true,
+			descriptor.FieldDescriptorProto_TYPE_SFIXED32: true,
+			descriptor.FieldDescriptorProto_TYPE_FLOAT:    true,
+		},
+	}
+)
 
 // RejectUnknownFieldsStrict rejects any bytes bz with an error that has unknown fields for the provided proto.Message type.
 // This function traverses inside of messages nested via google.protobuf.Any. It does not do any deserialization of the proto.Message.
@@ -196,68 +291,6 @@ func protoMessageForTypeName(protoMessageName string) (proto.Message, error) {
 	return msg, nil
 }
 
-// checks is a mapping of protowire.Type to supported descriptor.FieldDescriptorProto_Type.
-// it is implemented this way so as to have constant time lookups and avoid the overhead
-// from O(n) walking of switch. The change to using this mapping boosts throughput by about 200%.
-var checks = [...]map[descriptor.FieldDescriptorProto_Type]bool{
-	// "0	Varint: int32, int64, uint32, uint64, sint32, sint64, bool, enum"
-	0: {
-		descriptor.FieldDescriptorProto_TYPE_INT32:  true,
-		descriptor.FieldDescriptorProto_TYPE_INT64:  true,
-		descriptor.FieldDescriptorProto_TYPE_UINT32: true,
-		descriptor.FieldDescriptorProto_TYPE_UINT64: true,
-		descriptor.FieldDescriptorProto_TYPE_SINT32: true,
-		descriptor.FieldDescriptorProto_TYPE_SINT64: true,
-		descriptor.FieldDescriptorProto_TYPE_BOOL:   true,
-		descriptor.FieldDescriptorProto_TYPE_ENUM:   true,
-	},
-
-	// "1	64-bit:	fixed64, sfixed64, double"
-	1: {
-		descriptor.FieldDescriptorProto_TYPE_FIXED64:  true,
-		descriptor.FieldDescriptorProto_TYPE_SFIXED64: true,
-		descriptor.FieldDescriptorProto_TYPE_DOUBLE:   true,
-	},
-
-	// "2	Length-delimited: string, bytes, embedded messages, packed repeated fields"
-	2: {
-		descriptor.FieldDescriptorProto_TYPE_STRING:  true,
-		descriptor.FieldDescriptorProto_TYPE_BYTES:   true,
-		descriptor.FieldDescriptorProto_TYPE_MESSAGE: true,
-		// The following types can be packed repeated.
-		// ref: "Only repeated fields of primitive numeric types (types which use the varint, 32-bit, or 64-bit wire types) can be declared "packed"."
-		// ref: https://developers.google.com/protocol-buffers/docs/encoding#packed
-		descriptor.FieldDescriptorProto_TYPE_INT32:    true,
-		descriptor.FieldDescriptorProto_TYPE_INT64:    true,
-		descriptor.FieldDescriptorProto_TYPE_UINT32:   true,
-		descriptor.FieldDescriptorProto_TYPE_UINT64:   true,
-		descriptor.FieldDescriptorProto_TYPE_SINT32:   true,
-		descriptor.FieldDescriptorProto_TYPE_SINT64:   true,
-		descriptor.FieldDescriptorProto_TYPE_BOOL:     true,
-		descriptor.FieldDescriptorProto_TYPE_ENUM:     true,
-		descriptor.FieldDescriptorProto_TYPE_FIXED64:  true,
-		descriptor.FieldDescriptorProto_TYPE_SFIXED64: true,
-		descriptor.FieldDescriptorProto_TYPE_DOUBLE:   true,
-	},
-
-	// "3	Start group:	groups (deprecated)"
-	3: {
-		descriptor.FieldDescriptorProto_TYPE_GROUP: true,
-	},
-
-	// "4	End group:	groups (deprecated)"
-	4: {
-		descriptor.FieldDescriptorProto_TYPE_GROUP: true,
-	},
-
-	// "5	32-bit:	fixed32, sfixed32, float"
-	5: {
-		descriptor.FieldDescriptorProto_TYPE_FIXED32:  true,
-		descriptor.FieldDescriptorProto_TYPE_SFIXED32: true,
-		descriptor.FieldDescriptorProto_TYPE_FLOAT:    true,
-	},
-}
-
 // canEncodeType returns true if the wireType is suitable for encoding the descriptor type.
 // See https://developers.google.com/protocol-buffers/docs/encoding#structure.
 func canEncodeType(wireType protowire.Type, descType descriptor.FieldDescriptorProto_Type) bool {
@@ -265,15 +298,6 @@ func canEncodeType(wireType protowire.Type, descType descriptor.FieldDescriptorP
 		return false
 	}
 	return checks[wireType][descType]
-}
-
-// errMismatchedWireType describes a mismatch between
-// expected and got wireTypes for a specific tag number.
-type errMismatchedWireType struct {
-	Type         string
-	GotWireType  protowire.Type
-	WantWireType protowire.Type
-	TagNum       protowire.Number
 }
 
 // String implements fmt.Stringer.
@@ -286,8 +310,6 @@ func (mwt *errMismatchedWireType) String() string {
 func (mwt *errMismatchedWireType) Error() string {
 	return mwt.String()
 }
-
-var _ error = (*errMismatchedWireType)(nil)
 
 func wireTypeToString(wt protowire.Type) string {
 	switch wt {
@@ -379,16 +401,6 @@ func extractFileDescMessageDesc(desc descriptorIface) (*descriptor.FileDescripto
 	return fdesc, unnestDesc(fdesc.MessageType, indices), nil
 }
 
-type descriptorMatch struct {
-	cache map[int32]*descriptor.FieldDescriptorProto
-	desc  *descriptor.DescriptorProto
-}
-
-var (
-	descprotoCacheMu sync.RWMutex
-	descprotoCache   = make(map[reflect.Type]*descriptorMatch)
-)
-
 // getDescriptorInfo retrieves the mapping of field numbers to their respective field descriptors.
 func getDescriptorInfo(desc descriptorIface, msg proto.Message) (map[int32]*descriptor.FieldDescriptorProto, *descriptor.DescriptorProto, error) {
 	key := reflect.ValueOf(msg).Type()
@@ -421,12 +433,6 @@ func getDescriptorInfo(desc descriptorIface, msg proto.Message) (map[int32]*desc
 
 	return tagNumToTypeIndex, md, nil
 }
-
-// DefaultAnyResolver is a default implementation of AnyResolver which uses
-// the default encoding of type URLs as specified by the protobuf specification.
-type DefaultAnyResolver struct{}
-
-var _ jsonpb.AnyResolver = DefaultAnyResolver{}
 
 // Resolve is the AnyResolver.Resolve method.
 func (DefaultAnyResolver) Resolve(typeURL string) (proto.Message, error) {
