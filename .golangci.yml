@@ -346,3 +346,5 @@ linters-settings:
         disabled: true
       - name: import-shadowing
         disabled: true
+      - name: modifies-value-receiver
+        disabled: true

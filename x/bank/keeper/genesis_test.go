@@ -39,14 +39,14 @@ func (suite *KeeperTestSuite) TestExportGenesis() {
 
 	exportGenesis := suite.bankKeeper.ExportGenesis(ctx)
 
-	suite.Require().Len(exportGenesis.Params.SendEnabled, 0)
+	suite.Require().Len(exportGenesis.Params.SendEnabled, 0) //nolint:staticcheck // SA1019: exportGenesis.Params.SendEnabled is deprecated: SendEnabled is deprecated
 	suite.Require().Equal(types.DefaultParams().DefaultSendEnabled, exportGenesis.Params.DefaultSendEnabled)
 	suite.Require().Equal(expTotalSupply, exportGenesis.Supply)
 	suite.Require().Subset(exportGenesis.Balances, expectedBalances)
 	suite.Require().Equal(expectedMetadata, exportGenesis.DenomMetadata)
 }
 
-func (suite *KeeperTestSuite) getTestBalancesAndSupply() ([]types.Balance, sdk.Coins) {
+func (*KeeperTestSuite) getTestBalancesAndSupply() ([]types.Balance, sdk.Coins) { //nolint:unparam // SA1019: suite.getTestBalancesAndSupply is deprecated: getTestBalancesAndSupply is deprecated
 	addr2, _ := sdk.AccAddressFromBech32("cosmos1f9xjhxm0plzrh9cskf4qee4pc2xwp0n0556gh0")
 	addr1, _ := sdk.AccAddressFromBech32("cosmos1t5u0jfg3ljsjrh2m9e47d4ny2hea7eehxrzdgd")
 	addr1Balance := sdk.Coins{sdk.NewInt64Coin("testcoin3", 10)}

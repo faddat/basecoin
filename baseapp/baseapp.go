@@ -28,6 +28,21 @@ import (
 var _ abci.Application = (*BaseApp)(nil)
 
 type (
+	// ProposalTxVerifier defines the interface that is implemented by BaseApp,
+	// that any custom ABCI PrepareProposal and ProcessProposal handler can use
+	// to verify a transaction.
+	ProposalTxVerifier interface {
+		PrepareProposalVerifyTx(tx sdk.Tx) ([]byte, error)
+		ProcessProposalVerifyTx(txBz []byte) (sdk.Tx, error)
+	}
+
+	// DefaultProposalHandler defines the default ABCI PrepareProposal and
+	// ProcessProposal handlers.
+	DefaultProposalHandler struct {
+		mempool    mempool.Mempool
+		txVerifier ProposalTxVerifier
+	}
+
 	// Enum mode for app.runTx
 	runTxMode uint8
 
@@ -891,23 +906,6 @@ func (app *BaseApp) ProcessProposalVerifyTx(txBz []byte) (sdk.Tx, error) {
 
 	return tx, nil
 }
-
-type (
-	// ProposalTxVerifier defines the interface that is implemented by BaseApp,
-	// that any custom ABCI PrepareProposal and ProcessProposal handler can use
-	// to verify a transaction.
-	ProposalTxVerifier interface {
-		PrepareProposalVerifyTx(tx sdk.Tx) ([]byte, error)
-		ProcessProposalVerifyTx(txBz []byte) (sdk.Tx, error)
-	}
-
-	// DefaultProposalHandler defines the default ABCI PrepareProposal and
-	// ProcessProposal handlers.
-	DefaultProposalHandler struct {
-		mempool    mempool.Mempool
-		txVerifier ProposalTxVerifier
-	}
-)
 
 func NewDefaultProposalHandler(mp mempool.Mempool, txVerifier ProposalTxVerifier) DefaultProposalHandler {
 	return DefaultProposalHandler{
