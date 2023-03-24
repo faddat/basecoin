@@ -8,20 +8,23 @@ import (
 
 var _ Router = (*router)(nil)
 
-// Router implements a governance Handler router.
-//
-// TODO: Use generic router (ref #3976).
-type Router interface {
-	AddRoute(r string, h Handler) (rtr Router)
-	HasRoute(r string) bool
-	GetRoute(path string) (h Handler)
-	Seal()
-}
+type (
 
-type router struct {
-	routes map[string]Handler
-	sealed bool
-}
+	// Router implements a governance Handler router.
+	//
+	// TODO: Use generic router (ref #3976).
+	Router interface {
+		AddRoute(r string, h Handler) (rtr Router)
+		HasRoute(r string) bool
+		GetRoute(path string) (h Handler)
+		Seal()
+	}
+	// router is a map from string to Handler.
+	router struct {
+		routes map[string]Handler
+		sealed bool
+	}
+)
 
 // NewRouter creates a new Router interface instance
 func NewRouter() Router {

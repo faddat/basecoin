@@ -20,26 +20,49 @@ const (
 	ParamTallying = "tallying"
 )
 
-// QueryProposalParams Params for queries:
-// - 'custom/gov/proposal'
-// - 'custom/gov/deposits'
-// - 'custom/gov/tally'
-type QueryProposalParams struct {
-	ProposalID uint64
-}
+type (
+	// QueryProposalParams Params for queries:
+	// - 'custom/gov/proposal'
+	// - 'custom/gov/deposits'
+	// - 'custom/gov/tally'
+	QueryProposalParams struct {
+		ProposalID uint64
+	}
+
+	// QueryProposalVotesParams used for queries to 'custom/gov/votes'.
+	QueryProposalVotesParams struct {
+		ProposalID uint64
+		Page       int
+		Limit      int
+	}
+
+	// QueryDepositParams params for query 'custom/gov/deposit'
+	QueryDepositParams struct {
+		ProposalID uint64
+		Depositor  sdk.AccAddress
+	}
+
+	// QueryProposalsParams Params for query 'custom/gov/proposals'
+	QueryProposalsParams struct {
+		Page           int
+		Limit          int
+		Voter          sdk.AccAddress
+		Depositor      sdk.AccAddress
+		ProposalStatus ProposalStatus
+	}
+
+	// QueryVoteParams Params for query 'custom/gov/vote'
+	QueryVoteParams struct {
+		ProposalID uint64
+		Voter      sdk.AccAddress
+	}
+)
 
 // NewQueryProposalParams creates a new instance of QueryProposalParams
 func NewQueryProposalParams(proposalID uint64) QueryProposalParams {
 	return QueryProposalParams{
 		ProposalID: proposalID,
 	}
-}
-
-// QueryProposalVotesParams used for queries to 'custom/gov/votes'.
-type QueryProposalVotesParams struct {
-	ProposalID uint64
-	Page       int
-	Limit      int
 }
 
 // NewQueryProposalVotesParams creates new instance of the QueryProposalVotesParams.
@@ -51,12 +74,6 @@ func NewQueryProposalVotesParams(proposalID uint64, page, limit int) QueryPropos
 	}
 }
 
-// QueryDepositParams params for query 'custom/gov/deposit'
-type QueryDepositParams struct {
-	ProposalID uint64
-	Depositor  sdk.AccAddress
-}
-
 // NewQueryDepositParams creates a new instance of QueryDepositParams
 func NewQueryDepositParams(proposalID uint64, depositor sdk.AccAddress) QueryDepositParams {
 	return QueryDepositParams{
@@ -65,27 +82,12 @@ func NewQueryDepositParams(proposalID uint64, depositor sdk.AccAddress) QueryDep
 	}
 }
 
-// QueryVoteParams Params for query 'custom/gov/vote'
-type QueryVoteParams struct {
-	ProposalID uint64
-	Voter      sdk.AccAddress
-}
-
 // NewQueryVoteParams creates a new instance of QueryVoteParams
 func NewQueryVoteParams(proposalID uint64, voter sdk.AccAddress) QueryVoteParams {
 	return QueryVoteParams{
 		ProposalID: proposalID,
 		Voter:      voter,
 	}
-}
-
-// QueryProposalsParams Params for query 'custom/gov/proposals'
-type QueryProposalsParams struct {
-	Page           int
-	Limit          int
-	Voter          sdk.AccAddress
-	Depositor      sdk.AccAddress
-	ProposalStatus ProposalStatus
 }
 
 // NewQueryProposalsParams creates a new instance of QueryProposalsParams
