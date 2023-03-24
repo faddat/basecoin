@@ -27,13 +27,15 @@ func TestAnyPackUnpack(t *testing.T) {
 	require.Equal(t, spot, animal)
 }
 
-type TestI interface {
-	DoSomething()
-}
+type (
+	TestI interface {
+		DoSomething()
+	}
 
-// A struct that has the same typeURL as testdata.Dog, but is actually another
-// concrete type.
-type FakeDog struct{}
+	// A struct that has the same typeURL as testdata.Dog, but is actually another
+	// concrete type.
+	FakeDog struct{}
+)
 
 var (
 	_ proto.Message   = &FakeDog{}
@@ -41,11 +43,11 @@ var (
 )
 
 // dummy implementation of proto.Message and testdata.Animal
-func (dog FakeDog) Reset()                  {}
-func (dog FakeDog) String() string          { return "fakedog" }
-func (dog FakeDog) ProtoMessage()           {}
+func (FakeDog) Reset()                      {}
+func (FakeDog) String() string              { return "fakedog" }
+func (FakeDog) ProtoMessage()               {}
 func (dog FakeDog) XXX_MessageName() string { return proto.MessageName(&testdata.Dog{}) } //nolint:revive
-func (dog FakeDog) Greet() string           { return "fakedog" }
+func (FakeDog) Greet() string               { return "fakedog" }
 
 func TestRegister(t *testing.T) {
 	registry := types.NewInterfaceRegistry()

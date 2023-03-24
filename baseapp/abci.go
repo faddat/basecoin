@@ -165,7 +165,7 @@ func (app *BaseApp) BeginBlock(req abci.RequestBeginBlock) (res abci.ResponseBeg
 
 	if app.cms.TracingEnabled() {
 		app.cms.SetTracingContext(storetypes.TraceContext(
-			map[string]interface{}{"blockHeight": req.Header.Height},
+			map[string]any{"blockHeight": req.Header.Height},
 		))
 	}
 

@@ -28,13 +28,51 @@ var (
 	_ module.AppModule           = AppModule{}
 	_ module.AppModuleBasic      = AppModuleBasic{}
 	_ module.AppModuleSimulation = AppModule{}
+	_ appmodule.AppModule        = AppModule{}
 )
 
 // ConsensusVersion defines the current x/params module consensus version.
 const ConsensusVersion = 1
 
-// AppModuleBasic defines the basic application module used by the params module.
-type AppModuleBasic struct{}
+type (
+
+	// AppModuleBasic defines the basic application module used by the params module.
+	AppModuleBasic struct{}
+
+	//nolint:revive
+	ParamsInputs struct {
+		depinject.In
+
+		KvStoreKey        *store.KVStoreKey
+		TransientStoreKey *store.TransientStoreKey
+		Cdc               codec.Codec
+		LegacyAmino       *codec.LegacyAmino
+	}
+
+	//nolint:revive
+	ParamsOutputs struct {
+		depinject.Out
+
+		ParamsKeeper keeper.Keeper
+		Module       appmodule.AppModule
+		GovHandler   govv1beta1.HandlerRoute
+	}
+
+	// AppModule implements an application module for the distribution module.
+	AppModule struct {
+		AppModuleBasic
+
+		keeper keeper.Keeper
+	}
+
+	SubspaceInputs struct {
+		depinject.In
+
+		Key       depinject.ModuleKey
+		Keeper    keeper.Keeper
+		KeyTables map[string]types.KeyTable
+	}
+)
 
 // Name returns the params module's name.
 func (AppModuleBasic) Name() string {
@@ -65,13 +103,6 @@ func (AppModuleBasic) RegisterInterfaces(registry codectypes.InterfaceRegistry) 
 	proposal.RegisterInterfaces(registry)
 }
 
-// AppModule implements an application module for the distribution module.
-type AppModule struct {
-	AppModuleBasic
-
-	keeper keeper.Keeper
-}
-
 // NewAppModule creates a new AppModule object
 func NewAppModule(k keeper.Keeper) AppModule {
 	return AppModule{
@@ -79,8 +110,6 @@ func NewAppModule(k keeper.Keeper) AppModule {
 		keeper:         k,
 	}
 }
-
-var _ appmodule.AppModule = AppModule{}
 
 // IsOnePerModuleType implements the depinject.OnePerModuleType interface.
 func (AppModule) IsOnePerModuleType() {}
@@ -120,25 +149,6 @@ func init() {
 		))
 }
 
-//nolint:revive
-type ParamsInputs struct {
-	depinject.In
-
-	KvStoreKey        *store.KVStoreKey
-	TransientStoreKey *store.TransientStoreKey
-	Cdc               codec.Codec
-	LegacyAmino       *codec.LegacyAmino
-}
-
-//nolint:revive
-type ParamsOutputs struct {
-	depinject.Out
-
-	ParamsKeeper keeper.Keeper
-	Module       appmodule.AppModule
-	GovHandler   govv1beta1.HandlerRoute
-}
-
 func ProvideModule(in ParamsInputs) ParamsOutputs {
 	k := keeper.NewKeeper(in.Cdc, in.LegacyAmino, in.KvStoreKey, in.TransientStoreKey)
 
@@ -146,14 +156,6 @@ func ProvideModule(in ParamsInputs) ParamsOutputs {
 	govHandler := govv1beta1.HandlerRoute{RouteKey: proposal.RouterKey, Handler: NewParamChangeProposalHandler(k)}
 
 	return ParamsOutputs{ParamsKeeper: k, Module: m, GovHandler: govHandler}
-}
-
-type SubspaceInputs struct {
-	depinject.In
-
-	Key       depinject.ModuleKey
-	Keeper    keeper.Keeper
-	KeyTables map[string]types.KeyTable
 }
 
 func ProvideSubspace(in SubspaceInputs) types.Subspace {

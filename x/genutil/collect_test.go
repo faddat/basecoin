@@ -17,16 +17,19 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/genutil/types"
 )
 
-type doNothingUnmarshalJSON struct {
-	codec.JSONCodec
-}
+type (
+	// doNothingUnmarshalJSON is a codec.JSONCodec that does nothing.
+	doNothingUnmarshalJSON struct {
+		codec.JSONCodec
+	}
+	// doNothingIterator is a types.GenesisBalancesIterator that does nothing.
+	doNothingIterator struct {
+		types.GenesisBalancesIterator
+	}
+)
 
 func (dnj *doNothingUnmarshalJSON) UnmarshalJSON(_ []byte, _ proto.Message) error {
 	return nil
-}
-
-type doNothingIterator struct {
-	types.GenesisBalancesIterator
 }
 
 func (dni *doNothingIterator) IterateGenesisBalances(_ codec.JSONCodec, _ map[string]json.RawMessage, _ func(bankexported.GenesisBalance) bool) {

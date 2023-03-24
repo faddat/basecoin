@@ -25,7 +25,7 @@ type (
 	// serviceData represents a gRPC service, along with its handler.
 	serviceData struct {
 		serviceDesc *grpc.ServiceDesc
-		handler     interface{}
+		handler     any
 	}
 
 	// GRPCQueryHandler defines a function type which handles ABCI Query requests
@@ -81,7 +81,7 @@ func (qrt *GRPCQueryRouter) RegisterService(sd *grpc.ServiceDesc, handler any) {
 		qrt.routes[fqName] = func(ctx sdk.Context, req abci.RequestQuery) (abci.ResponseQuery, error) {
 			// call the method handler from the service description with the handler object,
 			// a wrapped sdk.Context with proto-unmarshaled data from the ABCI request data
-			res, err := methodHandler(handler, ctx, func(i interface{}) error {
+			res, err := methodHandler(handler, ctx, func(i any) error {
 				return qrt.cdc.Unmarshal(req.Data, i)
 			}, nil)
 			if err != nil {

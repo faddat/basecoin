@@ -20,9 +20,20 @@ import (
 )
 
 // GasEstimateResponse defines a response definition for tx gas estimation.
-type GasEstimateResponse struct {
-	GasEstimate uint64 `json:"gas_estimate" yaml:"gas_estimate"`
-}
+type (
+	GasEstimateResponse struct {
+		GasEstimate uint64 `json:"gas_estimate" yaml:"gas_estimate"`
+	}
+
+	// BatchScanner provides a convenient interface for reading batch data such as a file
+	// of newline-delimited JSON encoded StdTx.
+	BatchScanner struct {
+		*bufio.Scanner
+		theTx        sdk.Tx
+		cfg          client.TxConfig
+		unmarshalErr error
+	}
+)
 
 func (gr GasEstimateResponse) String() string {
 	return fmt.Sprintf("gas estimate: %d", gr.GasEstimate)
@@ -136,15 +147,6 @@ func ReadTxsFromInput(txCfg client.TxConfig, filenames ...string) (scanner *Batc
 // NewBatchScanner returns a new BatchScanner to read newline-delimited StdTx transactions from r.
 func NewBatchScanner(cfg client.TxConfig, r io.Reader) *BatchScanner {
 	return &BatchScanner{Scanner: bufio.NewScanner(r), cfg: cfg}
-}
-
-// BatchScanner provides a convenient interface for reading batch data such as a file
-// of newline-delimited JSON encoded StdTx.
-type BatchScanner struct {
-	*bufio.Scanner
-	theTx        sdk.Tx
-	cfg          client.TxConfig
-	unmarshalErr error
 }
 
 // Tx returns the most recent Tx unmarshalled by a call to Scan.

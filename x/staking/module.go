@@ -41,12 +41,39 @@ var (
 	_ module.EndBlockAppModule   = AppModule{}
 	_ module.AppModuleBasic      = AppModuleBasic{}
 	_ module.AppModuleSimulation = AppModule{}
+
+	_ appmodule.AppModule       = AppModule{}
+	_ appmodule.HasBeginBlocker = AppModule{}
 )
 
-// AppModuleBasic defines the basic application module used by the staking module.
-type AppModuleBasic struct {
-	cdc codec.Codec
-}
+type (
+	StakingInputs struct {
+		depinject.In
+
+		Config        *modulev1.Module
+		AccountKeeper types.AccountKeeper
+		BankKeeper    types.BankKeeper
+		Cdc           codec.Codec
+		Key           *store.KVStoreKey
+
+		// LegacySubspace is used solely for migration of x/params managed parameters
+		LegacySubspace exported.Subspace
+	}
+
+	// Dependency Injection Outputs
+	//
+	StakingOutputs struct {
+		depinject.Out
+
+		StakingKeeper *keeper.Keeper
+		Module        appmodule.AppModule
+	}
+
+	// AppModuleBasic defines the basic application module used by the staking module.
+	AppModuleBasic struct {
+		cdc codec.Codec
+	}
+)
 
 // Name returns the staking module's name.
 func (AppModuleBasic) Name() string {
@@ -125,11 +152,6 @@ func NewAppModule(
 	}
 }
 
-var (
-	_ appmodule.AppModule       = AppModule{}
-	_ appmodule.HasBeginBlocker = AppModule{}
-)
-
 // IsOnePerModuleType implements the depinject.OnePerModuleType interface.
 func (AppModule) IsOnePerModuleType() {}
 
@@ -201,30 +223,6 @@ func init() {
 		appmodule.Provide(ProvideModule),
 		appmodule.Invoke(InvokeSetStakingHooks),
 	)
-}
-
-//nolint:revive
-type StakingInputs struct {
-	depinject.In
-
-	Config        *modulev1.Module
-	AccountKeeper types.AccountKeeper
-	BankKeeper    types.BankKeeper
-	Cdc           codec.Codec
-	Key           *store.KVStoreKey
-
-	// LegacySubspace is used solely for migration of x/params managed parameters
-	LegacySubspace exported.Subspace
-}
-
-// Dependency Injection Outputs
-//
-//nolint:revive
-type StakingOutputs struct {
-	depinject.Out
-
-	StakingKeeper *keeper.Keeper
-	Module        appmodule.AppModule
 }
 
 func ProvideModule(in StakingInputs) StakingOutputs {

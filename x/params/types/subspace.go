@@ -22,14 +22,21 @@ const (
 // Individual parameter store for each keeper
 // Transient store persists for a block, so we use it for
 // recording whether the parameter has been changed or not
-type Subspace struct {
-	cdc         codec.BinaryCodec
-	legacyAmino *codec.LegacyAmino
-	key         storetypes.StoreKey // []byte -> []byte, stores parameter
-	tkey        storetypes.StoreKey // []byte -> bool, stores parameter change
-	name        []byte
-	table       KeyTable
-}
+type (
+	Subspace struct {
+		cdc         codec.BinaryCodec
+		legacyAmino *codec.LegacyAmino
+		key         storetypes.StoreKey // []byte -> []byte, stores parameter
+		tkey        storetypes.StoreKey // []byte -> bool, stores parameter change
+		name        []byte
+		table       KeyTable
+	}
+
+	// Wrapper of Subspace, provides immutable functions only
+	ReadOnlySubspace struct {
+		s Subspace
+	}
+)
 
 // NewSubspace constructs a store with namestore
 func NewSubspace(cdc codec.BinaryCodec, legacyAmino *codec.LegacyAmino, key, tkey storetypes.StoreKey, name string) Subspace {
@@ -271,11 +278,6 @@ func (s Subspace) SetParamSet(ctx sdk.Context, ps ParamSet) {
 // Name returns the name of the Subspace.
 func (s Subspace) Name() string {
 	return string(s.name)
-}
-
-// Wrapper of Subspace, provides immutable functions only
-type ReadOnlySubspace struct {
-	s Subspace
 }
 
 // Get delegates a read-only Get call to the Subspace.

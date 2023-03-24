@@ -47,6 +47,13 @@ type (
 		expectedBalances []expectedBalance
 		expInError       []string
 	}
+
+	suite struct {
+		BankKeeper         bankkeeper.Keeper
+		AccountKeeper      types.AccountKeeper
+		DistributionKeeper distrkeeper.Keeper
+		App                *runtime.App
+	}
 )
 
 var (
@@ -89,13 +96,6 @@ var (
 		Outputs: []types.Output{},
 	}
 )
-
-type suite struct {
-	BankKeeper         bankkeeper.Keeper
-	AccountKeeper      types.AccountKeeper
-	DistributionKeeper distrkeeper.Keeper
-	App                *runtime.App
-}
 
 func createTestSuite(t *testing.T, genesisAccounts []authtypes.GenesisAccount) suite {
 	t.Helper()

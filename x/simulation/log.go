@@ -7,11 +7,21 @@ import (
 	"time"
 )
 
-// log writter
-type LogWriter interface {
-	AddEntry(OperationEntry)
-	PrintLogs()
-}
+type (
+	// LogWriter - interface for log writer
+	LogWriter interface {
+		AddEntry(OperationEntry)
+		PrintLogs()
+	}
+
+	// dummy log writter
+	DummyLogWriter struct{}
+
+	// log writter
+	StandardLogWriter struct {
+		OpEntries []OperationEntry `json:"op_entries" yaml:"op_entries"`
+	}
+)
 
 // LogWriter - return a dummy or standard log writer given the testingmode
 func NewLogWriter(testingmode bool) LogWriter {
@@ -20,11 +30,6 @@ func NewLogWriter(testingmode bool) LogWriter {
 	}
 
 	return &StandardLogWriter{}
-}
-
-// log writter
-type StandardLogWriter struct {
-	OpEntries []OperationEntry `json:"op_entries" yaml:"op_entries"`
 }
 
 // add an entry to the log writter
@@ -66,9 +71,6 @@ func createLogFile() *os.File {
 
 	return f
 }
-
-// dummy log writter
-type DummyLogWriter struct{}
 
 // do nothing
 func (*DummyLogWriter) AddEntry(_ OperationEntry) {}

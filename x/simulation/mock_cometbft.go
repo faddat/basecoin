@@ -12,10 +12,14 @@ import (
 	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
 )
 
-type mockValidator struct {
-	val           abci.ValidatorUpdate
-	livenessState int
-}
+type (
+	mockValidator struct {
+		val           abci.ValidatorUpdate
+		livenessState int
+	}
+
+	mockValidators map[string]mockValidator
+)
 
 func (mv mockValidator) String() string {
 	return fmt.Sprintf("mockValidator{%s power:%v state:%v}",
@@ -23,8 +27,6 @@ func (mv mockValidator) String() string {
 		mv.val.Power,
 		mv.livenessState)
 }
-
-type mockValidators map[string]mockValidator
 
 // get mockValidators from abci validators
 func newMockValidators(r *rand.Rand, abciVals []abci.ValidatorUpdate, params Params) mockValidators {

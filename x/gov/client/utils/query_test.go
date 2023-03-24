@@ -23,7 +23,7 @@ type TxSearchMock struct {
 	txs []cmttypes.Tx
 }
 
-func (mock TxSearchMock) TxSearch(ctx context.Context, query string, prove bool, page, perPage *int, orderBy string) (*coretypes.ResultTxSearch, error) {
+func (mock TxSearchMock) TxSearch(_ context.Context, query string, prove bool, page, perPage *int, orderBy string) (*coretypes.ResultTxSearch, error) {
 	if page == nil {
 		*page = 0
 	}
@@ -46,7 +46,7 @@ func (mock TxSearchMock) TxSearch(ctx context.Context, query string, prove bool,
 	return rst, nil
 }
 
-func (mock TxSearchMock) Block(ctx context.Context, height *int64) (*coretypes.ResultBlock, error) {
+func (mock TxSearchMock) Block(_ context.Context, height *int64) (*coretypes.ResultBlock, error) {
 	// any non nil Block needs to be returned. used to get time value
 	return &coretypes.ResultBlock{Block: &cmttypes.Block{}}, nil
 }

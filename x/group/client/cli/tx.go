@@ -778,9 +778,6 @@ func MsgExecCmd() *cobra.Command {
 				ProposalId: proposalID,
 				Executor:   clientCtx.GetFromAddress().String(),
 			}
-			if err != nil {
-				return err
-			}
 
 			if err = msg.ValidateBasic(); err != nil {
 				return fmt.Errorf("message validation failed: %w", err)

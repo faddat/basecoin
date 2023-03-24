@@ -66,6 +66,25 @@ var (
 	initCoins  = sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, initTokens))
 )
 
+type (
+	mockSubspace struct {
+		ps banktypes.Params
+	}
+
+	KeeperTestSuite struct {
+		suite.Suite
+
+		ctx        sdk.Context
+		bankKeeper keeper.BaseKeeper
+		authKeeper *banktestutil.MockAccountKeeper
+
+		queryClient banktypes.QueryClient
+		msgServer   banktypes.MsgServer
+
+		encCfg moduletestutil.TestEncodingConfig
+	}
+)
+
 func newFooCoin(amt int64) sdk.Coin {
 	return sdk.NewInt64Coin(fooDenom, amt)
 }
@@ -102,19 +121,6 @@ func addIBCMetadata(ctx sdk.Context, k keeper.BaseKeeper) {
 		Display: ibcPath + "/" + ibcBaseDenom,
 	}
 	k.SetDenomMetaData(ctx, metadata)
-}
-
-type KeeperTestSuite struct {
-	suite.Suite
-
-	ctx        sdk.Context
-	bankKeeper keeper.BaseKeeper
-	authKeeper *banktestutil.MockAccountKeeper
-
-	queryClient banktypes.QueryClient
-	msgServer   banktypes.MsgServer
-
-	encCfg moduletestutil.TestEncodingConfig
 }
 
 func TestKeeperTestSuite(t *testing.T) {
@@ -1722,10 +1728,6 @@ func (suite *KeeperTestSuite) TestGetAllSendEnabledEntries() {
 	})
 }
 
-type mockSubspace struct {
-	ps banktypes.Params
-}
-
 func (ms mockSubspace) GetParamSet(ctx sdk.Context, ps exported.ParamSet) {
 	*ps.(*banktypes.Params) = ms.ps
 }
@@ -1770,10 +1772,10 @@ func (suite *KeeperTestSuite) TestMigrator_Migrate3to4() {
 			require.NoError(migrator.Migrate3to4(ctx))
 
 			newParams := bankKeeper.GetParams(ctx)
-			require.Len(newParams.SendEnabled, 0) //nolint:staticcheck // SA1019: banktypes.SendEnabled is deprecated
+			require.Len(newParams.SendEnabled, 0)
 			require.Equal(def, newParams.DefaultSendEnabled)
 
-			for _, se := range params.SendEnabled { //nolint:staticcheck // SA1019: banktypes.SendEnabled is deprecated
+			for _, se := range params.SendEnabled {
 				actual := bankKeeper.IsSendEnabledDenom(ctx, se.Denom)
 				require.Equal(se.Enabled, actual, se.Denom)
 			}
@@ -1786,7 +1788,7 @@ func (suite *KeeperTestSuite) TestSetParams() {
 	require := suite.Require()
 
 	params := banktypes.NewParams(true)
-	params.SendEnabled = []*banktypes.SendEnabled{ //nolint:staticcheck // SA1019: banktypes.SendEnabled is deprecated
+	params.SendEnabled = []*banktypes.SendEnabled{
 		{Denom: "paramscointrue", Enabled: true},
 		{Denom: "paramscoinfalse", Enabled: false},
 	}
@@ -1795,7 +1797,7 @@ func (suite *KeeperTestSuite) TestSetParams() {
 	suite.Run("stored params are as expected", func() {
 		actual := bankKeeper.GetParams(ctx)
 		require.True(actual.DefaultSendEnabled, "DefaultSendEnabled")
-		require.Len(actual.SendEnabled, 0, "SendEnabled") //nolint:staticcheck // SA1019: banktypes.SendEnabled is deprecated
+		require.Len(actual.SendEnabled, 0, "SendEnabled")
 	})
 
 	suite.Run("send enabled params converted to store", func() {

@@ -6,15 +6,19 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-type attribute struct {
-	ty  reflect.Type
-	vfn ValueValidatorFn
-}
+type (
+	// attribute is a struct that contains the type and validator function for a
+	// parameter.
+	attribute struct {
+		ty  reflect.Type
+		vfn ValueValidatorFn
+	}
 
-// KeyTable subspaces appropriate type for each parameter key
-type KeyTable struct {
-	m map[string]attribute
-}
+	// KeyTable subspaces appropriate type for each parameter key
+	KeyTable struct {
+		m map[string]attribute
+	}
+)
 
 // IsOnePerModuleType implements depinject.OnePerModuleType
 func (KeyTable) IsOnePerModuleType() {}

@@ -52,33 +52,41 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
-// AppModuleBasic is the standard form for basic non-dependant elements of an application module.
-type AppModuleBasic interface {
-	HasName
-	RegisterLegacyAminoCodec(*codec.LegacyAmino)
-	RegisterInterfaces(types.InterfaceRegistry)
+type (
+	// AppModuleBasic is the standard form for basic non-dependant elements of an application module.
+	AppModuleBasic interface {
+		HasName
+		RegisterLegacyAminoCodec(*codec.LegacyAmino)
+		RegisterInterfaces(types.InterfaceRegistry)
 
-	// client functionality
-	RegisterGRPCGatewayRoutes(client.Context, *runtime.ServeMux)
-	GetTxCmd() *cobra.Command
-	GetQueryCmd() *cobra.Command
-}
+		// client functionality
+		RegisterGRPCGatewayRoutes(client.Context, *runtime.ServeMux)
+		GetTxCmd() *cobra.Command
+		GetQueryCmd() *cobra.Command
+	}
 
-// HasName allows the module to provide its own name for legacy purposes.
-// Newer apps should specify the name for their modules using a map
-// using NewManagerFromMap.
-type HasName interface {
-	Name() string
-}
+	// HasName allows the module to provide its own name for legacy purposes.
+	// Newer apps should specify the name for their modules using a map
+	// using NewManagerFromMap.
+	HasName interface {
+		Name() string
+	}
 
-// HasGenesisBasics is the legacy interface for stateless genesis methods.
-type HasGenesisBasics interface {
-	DefaultGenesis(codec.JSONCodec) json.RawMessage
-	ValidateGenesis(codec.JSONCodec, client.TxEncodingConfig, json.RawMessage) error
-}
+	// HasGenesisBasics is the legacy interface for stateless genesis methods.
+	HasGenesisBasics interface {
+		DefaultGenesis(codec.JSONCodec) json.RawMessage
+		ValidateGenesis(codec.JSONCodec, client.TxEncodingConfig, json.RawMessage) error
+	}
 
-// BasicManager is a collection of AppModuleBasic
-type BasicManager map[string]AppModuleBasic
+	// BasicManager is a collection of AppModuleBasic
+	BasicManager map[string]AppModuleBasic
+
+	// MigrationHandler is the migration function that each module registers.
+	MigrationHandler func(sdk.Context) error
+
+	// VersionMap is a map of moduleName -> version
+	VersionMap map[string]uint64
+)
 
 // NewBasicManager creates a new BasicManager object
 func NewBasicManager(modules ...AppModuleBasic) BasicManager {
@@ -540,12 +548,6 @@ func (m *Manager) assertNoForgottenModules(setOrderFnName string, moduleNames []
 			"all modules must be defined when setting %s, missing: %v", setOrderFnName, missing))
 	}
 }
-
-// MigrationHandler is the migration function that each module registers.
-type MigrationHandler func(sdk.Context) error
-
-// VersionMap is a map of moduleName -> version
-type VersionMap map[string]uint64
 
 // RunMigrations performs in-place store migrations for all modules. This
 // function MUST be called insde an x/upgrade UpgradeHandler.

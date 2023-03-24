@@ -20,18 +20,20 @@ var (
 	tkey = storetypes.NewTransientStoreKey("transientstorekey")
 )
 
-type params struct {
-	UnbondingTime time.Duration `json:"unbonding_time" yaml:"unbonding_time"`
-	MaxValidators uint16        `json:"max_validators" yaml:"max_validators"`
-	BondDenom     string        `json:"bond_denom" yaml:"bond_denom"`
-}
+type (
+	params struct {
+		UnbondingTime time.Duration `json:"unbonding_time" yaml:"unbonding_time"`
+		MaxValidators uint16        `json:"max_validators" yaml:"max_validators"`
+		BondDenom     string        `json:"bond_denom" yaml:"bond_denom"`
+	}
 
-type paramsV2 struct {
-	UnbondingTime          time.Duration `json:"unbonding_time" yaml:"unbonding_time"`
-	MaxValidators          uint16        `json:"max_validators" yaml:"max_validators"`
-	BondDenom              string        `json:"bond_denom" yaml:"bond_denom"`
-	MaxRedelegationEntries uint32        `json:"max_redelegation_entries" yaml:"max_redelegation_entries"`
-}
+	paramsV2 struct {
+		UnbondingTime          time.Duration `json:"unbonding_time" yaml:"unbonding_time"`
+		MaxValidators          uint16        `json:"max_validators" yaml:"max_validators"`
+		BondDenom              string        `json:"bond_denom" yaml:"bond_denom"`
+		MaxRedelegationEntries uint32        `json:"max_redelegation_entries" yaml:"max_redelegation_entries"`
+	}
+)
 
 func validateUnbondingTime(i any) error {
 	v, ok := i.(time.Duration)

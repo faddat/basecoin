@@ -27,10 +27,34 @@ var (
 	_ appmodule.AppModule     = AppModule{}
 )
 
-// AppModuleBasic defines the basic application module used by the genutil module.
-type AppModuleBasic struct {
-	GenTxValidator types.MessageValidator
-}
+type (
+	// AppModuleBasic defines the basic application module used by the genutil module.
+	AppModuleBasic struct {
+		GenTxValidator types.MessageValidator
+	}
+
+	// GenutilInputs defines the inputs needed for the genutil module.
+	//
+	//nolint:revive
+	GenutilInputs struct {
+		depinject.In
+
+		AccountKeeper types.AccountKeeper
+		StakingKeeper types.StakingKeeper
+		DeliverTx     func(abci.RequestDeliverTx) abci.ResponseDeliverTx
+		Config        client.TxConfig
+	}
+
+	// AppModule implements an application module for the genutil module.
+	AppModule struct {
+		AppModuleBasic
+
+		accountKeeper    types.AccountKeeper
+		stakingKeeper    types.StakingKeeper
+		deliverTx        deliverTxfn
+		txEncodingConfig client.TxEncodingConfig
+	}
+)
 
 // NewAppModuleBasic creates AppModuleBasic, validator is a function used to validate genesis
 // transactions.
@@ -44,10 +68,10 @@ func (AppModuleBasic) Name() string {
 }
 
 // RegisterLegacyAminoCodec registers the genutil module's types on the given LegacyAmino codec.
-func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {}
+func (AppModuleBasic) RegisterLegacyAminoCodec(_ *codec.LegacyAmino) {}
 
 // RegisterInterfaces registers the module's interface types
-func (b AppModuleBasic) RegisterInterfaces(_ cdctypes.InterfaceRegistry) {}
+func (AppModuleBasic) RegisterInterfaces(_ cdctypes.InterfaceRegistry) {}
 
 // DefaultGenesis returns default genesis state as raw bytes for the genutil
 // module.
@@ -74,16 +98,6 @@ func (AppModuleBasic) GetTxCmd() *cobra.Command { return nil }
 
 // GetQueryCmd returns no root query command for the genutil module.
 func (AppModuleBasic) GetQueryCmd() *cobra.Command { return nil }
-
-// AppModule implements an application module for the genutil module.
-type AppModule struct {
-	AppModuleBasic
-
-	accountKeeper    types.AccountKeeper
-	stakingKeeper    types.StakingKeeper
-	deliverTx        deliverTxfn
-	txEncodingConfig client.TxEncodingConfig
-}
 
 // NewAppModule creates a new AppModule object
 func NewAppModule(accountKeeper types.AccountKeeper,
@@ -129,18 +143,6 @@ func init() {
 	appmodule.Register(&modulev1.Module{},
 		appmodule.Provide(ProvideModule),
 	)
-}
-
-// GenutilInputs defines the inputs needed for the genutil module.
-//
-//nolint:revive
-type GenutilInputs struct {
-	depinject.In
-
-	AccountKeeper types.AccountKeeper
-	StakingKeeper types.StakingKeeper
-	DeliverTx     func(abci.RequestDeliverTx) abci.ResponseDeliverTx
-	Config        client.TxConfig
 }
 
 func ProvideModule(in GenutilInputs) appmodule.AppModule {

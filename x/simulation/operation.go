@@ -16,13 +16,28 @@ const (
 	QueuedMsgEntryKind  = "queued_msg"
 )
 
-// OperationEntry - an operation entry for logging (ex. BeginBlock, EndBlock, XxxMsg, etc)
-type OperationEntry struct {
-	EntryKind string          `json:"entry_kind" yaml:"entry_kind"`
-	Height    int64           `json:"height" yaml:"height"`
-	Order     int64           `json:"order" yaml:"order"`
-	Operation json.RawMessage `json:"operation" yaml:"operation"`
-}
+type (
+	// OperationEntry - an operation entry for logging (ex. BeginBlock, EndBlock, XxxMsg, etc)
+	OperationEntry struct {
+		EntryKind string          `json:"entry_kind" yaml:"entry_kind"`
+		Height    int64           `json:"height" yaml:"height"`
+		Order     int64           `json:"order" yaml:"order"`
+		Operation json.RawMessage `json:"operation" yaml:"operation"`
+	}
+
+	// WeightedOperations is the group of all weighted operations to simulate.
+	WeightedOperations []simulation.WeightedOperation
+
+	// OperationQueue defines an object for a queue of operations
+	OperationQueue map[int][]simulation.Operation
+
+	// WeightedOperation is an operation with associated weight.
+	// This is used to bias the selection operation within the simulator.
+	WeightedOperation struct {
+		weight int
+		op     simulation.Operation
+	}
+)
 
 // NewOperationEntry creates a new OperationEntry instance
 func NewOperationEntry(entry string, height, order int64, op json.RawMessage) OperationEntry {
@@ -64,9 +79,6 @@ func (oe OperationEntry) MustMarshal() json.RawMessage {
 	return out
 }
 
-// OperationQueue defines an object for a queue of operations
-type OperationQueue map[int][]simulation.Operation
-
 // NewOperationQueue creates a new OperationQueue instance.
 func NewOperationQueue() OperationQueue {
 	return make(OperationQueue)
@@ -105,13 +117,6 @@ func queueOperations(queuedOps OperationQueue, queuedTimeOps, futureOps []simula
 	}
 }
 
-// WeightedOperation is an operation with associated weight.
-// This is used to bias the selection operation within the simulator.
-type WeightedOperation struct {
-	weight int
-	op     simulation.Operation
-}
-
 func (w WeightedOperation) Weight() int {
 	return w.weight
 }
@@ -127,9 +132,6 @@ func NewWeightedOperation(weight int, op simulation.Operation) WeightedOperation
 		op:     op,
 	}
 }
-
-// WeightedOperations is the group of all weighted operations to simulate.
-type WeightedOperations []simulation.WeightedOperation
 
 func (ops WeightedOperations) totalWeight() int {
 	totalOpWeight := 0
