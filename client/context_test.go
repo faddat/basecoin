@@ -20,6 +20,11 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module/testutil"
 )
 
+const (
+	textsetting = "text"
+	jsonsetting = "json"
+)
+
 func TestMain(m *testing.M) {
 	viper.Set(flags.FlagKeyringBackend, keyring.BackendMemory)
 	os.Exit(m.Run())
@@ -46,7 +51,7 @@ func TestContext_PrintProto(t *testing.T) {
 	// json
 	buf := &bytes.Buffer{}
 	ctx = ctx.WithOutput(buf)
-	ctx.OutputFormat = "json" //nolint:goconst
+	ctx.OutputFormat = jsonsetting
 	err = ctx.PrintProto(hasAnimal)
 	require.NoError(t, err)
 	require.Equal(t,
@@ -56,7 +61,7 @@ func TestContext_PrintProto(t *testing.T) {
 	// yaml
 	buf = &bytes.Buffer{}
 	ctx = ctx.WithOutput(buf)
-	ctx.OutputFormat = "text" //nolint:goconst
+	ctx.OutputFormat = "text"
 	err = ctx.PrintProto(hasAnimal)
 	require.NoError(t, err)
 	require.Equal(t,
@@ -89,7 +94,7 @@ func TestContext_PrintObjectLegacy(t *testing.T) {
 	// json
 	buf := &bytes.Buffer{}
 	ctx = ctx.WithOutput(buf)
-	ctx.OutputFormat = "json"
+	ctx.OutputFormat = jsonsetting
 	err = ctx.PrintObjectLegacy(hasAnimal)
 	require.NoError(t, err)
 	require.Equal(t,

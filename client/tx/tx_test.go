@@ -347,7 +347,7 @@ func TestSign(t *testing.T) {
 	var prevSigs []signingtypes.SignatureV2
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			err = tx.Sign(nil, tc.txf, tc.from, tc.txb, tc.overwrite) //nolint:staticcheck
+			err = tx.Sign(nil, tc.txf, tc.from, tc.txb, tc.overwrite)
 			if len(tc.expectedPKs) == 0 {
 				requireT.Error(err)
 			} else {
@@ -418,7 +418,7 @@ func TestPreprocessHook(t *testing.T) {
 	txb, err := txfDirect.BuildUnsignedTx(msg1, msg2)
 	requireT.NoError(err)
 
-	err = tx.Sign(nil, txfDirect, from, txb, false) //nolint:staticcheck
+	err = tx.Sign(nil, txfDirect, from, txb, false)
 	requireT.NoError(err)
 
 	// Run preprocessing

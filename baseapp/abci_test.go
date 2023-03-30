@@ -727,8 +727,7 @@ func TestABCI_DeliverTx_MultiMsg(t *testing.T) {
 
 	builder := suite.txConfig.NewTxBuilder()
 	msgs := tx.GetMsgs()
-	msgs = append(msgs, &baseapptestutil.MsgCounter2{Counter: 0})
-	msgs = append(msgs, &baseapptestutil.MsgCounter2{Counter: 1})
+	msgs = append(msgs, &baseapptestutil.MsgCounter2{Counter: 0}, &baseapptestutil.MsgCounter2{Counter: 1})
 
 	builder.SetMsgs(msgs...)
 	builder.SetMemo(tx.GetMemo())
