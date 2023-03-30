@@ -374,11 +374,15 @@ benchmark:
 ###############################################################################
 
 golangci_lint_cmd=golangci-lint
-golangci_version=v1.51.2
+golangci_version=v1.52.1
 
 lint:
 	@echo "--> Running linter"
 	@go install github.com/golangci/golangci-lint/cmd/golangci-lint@$(golangci_version)
+<<<<<<< HEAD
+=======
+
+>>>>>>> 4ccfab85ef38cb74c3c53dde7d8553de59fc7e66
 	@sh ./scripts/go-lint-all.sh --timeout=15m
 
 lint-fix:
